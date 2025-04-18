@@ -8,7 +8,7 @@
 import Foundation
 
 func getMinExpectedHorizontalTravelDistance(_ testCase: TestCase) -> Float {
-    getMinExpectedHorizontalTravelDistance(testCase.N, testCase.H, testCase.A, testCase.B)
+    getMinExpectedHorizontalTravelDistance(testCase.conveyors)
 }
 
 func validateDrops(conveyor_drops: [DropInfo.DropInfoData_Conveyor]) {
@@ -191,78 +191,65 @@ func getMinExpectedHorizontalTravelDistance(conveyors: [Conveyor], dropInfos: [D
                                                   locked_direction: locked_direction)
 }
 
-func getMinExpectedHorizontalTravelDistance(_ N: Int, _ H: [Int], _ A: [Int], _ B: [Int]) -> Float {
-    // Write your code here
-    
-    let initial_y = 1_000_000
-    
-    let max_x = 1_000_000
-    
-    var conveyors = [Conveyor]()
-    for index in 0..<N {
-        let y = H[index]
-        let x1 = A[index]
-        let x2 = B[index]
-        let conveyor = Conveyor(index: index, x1: x1, x2: x2, y: y)
-        conveyors.append(conveyor)
-    }
-    
-    func collide(x: Int, y: Int) -> Conveyor? {
-        var result: Conveyor?
-        for conveyor in conveyors {
-            if conveyor.between(x: x) {
-                if conveyor.below(y: y) {
-                    if let best = result {
-                        if conveyor.y > best.y {
-                            result = conveyor
-                        }
-                    } else {
+func collide(x: Int, y: Int, conveyors: [Conveyor]) -> Conveyor? {
+    var result: Conveyor?
+    for conveyor in conveyors {
+        if conveyor.between(x: x) {
+            if conveyor.below(y: y) {
+                if let best = result {
+                    if conveyor.y > best.y {
                         result = conveyor
                     }
+                } else {
+                    result = conveyor
                 }
             }
         }
-        return result
     }
-    
-    // For x from 0 to 1_000_000
-    // We can use from (x1 + 1)...(x2 - 1) on each conveyor.
-    // This is where a drop from x lands. The result will perfectly
-    // connect, for example [(x1: 0, x2: 1), (x1: 2, x2: 999), (x1: 1_000, x2: 1_000_000)]
-    func getDropInfos(conveyors: [Conveyor]) -> [DropInfo] {
+    return result
+}
+
+// For x from 0 to 1_000_000
+// We can use from (x1 + 1)...(x2 - 1) on each conveyor.
+// This is where a drop from x lands. The result will perfectly
+// connect, for example [(x1: 0, x2: 1), (x1: 2, x2: 999), (x1: 1_000, x2: 1_000_000)]
+func getDropInfos(conveyors: [Conveyor]) -> [DropInfo] {
+    let max_x = 1_000_000
+    let initial_y = 1_000_000
+    var result = [DropInfo]()
+    var landings = [Conveyor?]()
+    for x in 0...max_x {
+        landings.append(collide(x: x, y: initial_y, conveyors: conveyors))
+    }
+    var index = 0
+    while index <= max_x {
+        let conveyor = landings[index]
+        var seek = index + 1
+        while seek <= max_x && landings[seek] == conveyor {
+            seek += 1
+        }
+        let x1 = index
+        let x2 = seek - 1
         
-        var result = [DropInfo]()
-        var landings = [Conveyor?]()
-        for x in 0...max_x {
-            landings.append(collide(x: x, y: initial_y))
+        if let conveyor = conveyor {
+            result.append(.conveyor(.init(x1: x1, x2: x2, conveyor: conveyor)))
+        } else {
+            result.append(.empty(.init(x1: x1, x2: x2)))
         }
-        var index = 0
-        while index <= max_x {
-            let conveyor = landings[index]
-            var seek = index + 1
-            while seek <= max_x && landings[seek] == conveyor {
-                seek += 1
-            }
-            let x1 = index
-            let x2 = seek - 1
-            
-            if let conveyor = conveyor {
-                result.append(.conveyor(.init(x1: x1, x2: x2, conveyor: conveyor)))
-            } else {
-                result.append(.empty(.init(x1: x1, x2: x2)))
-            }
-            index = seek
-        }
-        return result
+        index = seek
     }
+    return result
+}
+
+func getMinExpectedHorizontalTravelDistance(_ conveyors: [Conveyor]) -> Float {
     
     for conveyor in conveyors {
         print(conveyor)
     }
     
     for conveyor in conveyors {
-        conveyor.left_collider = collide(x: conveyor.x1, y: conveyor.y)
-        conveyor.right_collider = collide(x: conveyor.x2, y: conveyor.y)
+        conveyor.left_collider = collide(x: conveyor.x1, y: conveyor.y, conveyors: conveyors)
+        conveyor.right_collider = collide(x: conveyor.x2, y: conveyor.y, conveyors: conveyors)
     }
     
     print("There's \(conveyors.count) conveyors.")
@@ -337,4 +324,25 @@ func getMinExpectedHorizontalTravelDistance(_ N: Int, _ H: [Int], _ A: [Int], _ 
     result = min(result, result_for_locked_and_dir)
     
     return Float(result)
+    
+}
+
+func getMinExpectedHorizontalTravelDistance(_ N: Int, _ H: [Int], _ A: [Int], _ B: [Int]) -> Float {
+    // Write your code here
+    
+    
+    
+    let max_x = 1_000_000
+    
+    var conveyors = [Conveyor]()
+    for index in 0..<N {
+        let y = H[index]
+        let x1 = A[index]
+        let x2 = B[index]
+        let conveyor = Conveyor(index: index, x1: x1, x2: x2, y: y)
+        conveyors.append(conveyor)
+    }
+    
+    return getMinExpectedHorizontalTravelDistance(conveyors)
+    
 }

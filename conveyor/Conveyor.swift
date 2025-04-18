@@ -271,36 +271,65 @@ class Conveyor: Hashable {
     
     func average_right(_ dropInfo: DropInfo.DropInfoData_Conveyor) -> Double {
         
-        //return average_all_smart(x1: dropInfo.x1, x2: dropInfo.x2, direction: .right)
+        if dropInfo.x1 == dropInfo.x2 {
+            // This is definitely right, as proven through observation.
+            // In this case, it's a one-point drop, there is no interval.
+            return Double(movement_right(x: dropInfo.x1))
+        }
         
         if dropInfo.x1 == (x1 + 1) {
             if dropInfo.x2 == (x2 - 1) {
+                // This is definitely right, as illustrated by example #1
                 return average_all_smart(x1: dropInfo.x1, x2: dropInfo.x2, direction: .right)
+                // This is also right, as observed
+                // return average_all_smart(x1: dropInfo.x1 - 1, x2: dropInfo.x2 + 1, direction: .right)
+                
             } else {
+                // This is definitely right, as illustrated by example #1
+                // This is correct for the case (100_000, 400_000]
+                // Therefore, it seems to be correct this type of case.
                 return average_all_smart(x1: dropInfo.x1 - 1, x2: dropInfo.x2, direction: .right)
             }
         } else if dropInfo.x2 == (x2 - 1) {
+            // This is not known, there is not a known example.
+            // example #1 does not enter this state.
             return average_all_smart(x1: dropInfo.x1, x2: dropInfo.x2 + 1, direction: .right)
         } else {
-            return average_all_smart(x1: dropInfo.x1 - 1, x2: dropInfo.x2 + 1, direction: .right)
+            // This is definitely right, as illustrated by the (x1, x2) = (x1 - 1, x2 + 2) examples.
+            return average_all_smart(x1: dropInfo.x1, x2: dropInfo.x2, direction: .right)
         }
     }
 
     func average_left(_ dropInfo: DropInfo.DropInfoData_Conveyor) -> Double {
         
-        //return average_all_smart(x1: dropInfo.x1, x2: dropInfo.x2, direction: .left)
+        if dropInfo.x1 == dropInfo.x2 {
+            // This is definitely right, as proven through observation.
+            // In this case, it's a one-point drop, there is no interval.
+            return Double(movement_left(x: dropInfo.x1))
+        }
         
         if dropInfo.x1 == (x1 + 1) {
             if dropInfo.x2 == (x2 - 1) {
+                // This is definitely right, as illustrated by example #1
                 return average_all_smart(x1: dropInfo.x1, x2: dropInfo.x2, direction: .left)
+                // This is also right, as observed
+                //return average_all_smart(x1: dropInfo.x1 - 1, x2: dropInfo.x2 + 1, direction: .left)
             } else {
+                // This is definitely right, as illustrated by example #1
+                // This is correct for the case (100_000, 400_000]
+                // Therefore, it seems to be correct this type of case.
                 return average_all_smart(x1: dropInfo.x1 - 1, x2: dropInfo.x2, direction: .left)
             }
         } else if dropInfo.x2 == (x2 - 1) {
+            // This seems correct, as illustrated by this example:
+            //DropInfo => Conveyor [100001, 599999] @ 0 C[100000, 600000]
+            //DropInfo => Conveyor [600000, 799999] @ 1 C[400000, 800000]
             return average_all_smart(x1: dropInfo.x1, x2: dropInfo.x2 + 1, direction: .left)
         } else {
-            return average_all_smart(x1: dropInfo.x1 - 1, x2: dropInfo.x2 + 1, direction: .left)
+            // This is definitely right, as illustrated by the (x1, x2) = (x1 - 1, x2 + 2) examples.
+            return average_all_smart(x1: dropInfo.x1, x2: dropInfo.x2, direction: .left)
         }
     }
+    
     
 }
