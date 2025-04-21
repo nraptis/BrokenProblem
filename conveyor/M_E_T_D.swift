@@ -7,59 +7,12 @@
 
 import Foundation
 
-func getMinExpectedHorizontalTravelDistance(_ testCase: TestCase) -> Float {
-    getMinExpectedHorizontalTravelDistance(testCase.conveyors)
-}
-
-func validateDrops(conveyor_drops: [DropInfo.DropInfoData_Conveyor]) {
-    
-    for conveyor_drop in conveyor_drops {
-        
-        let conveyor = conveyor_drop.conveyor
-        var x = 0
-        
-        // Brute force measure the left direction.
-        x = conveyor_drop.x1
-        var sum_left = 0
-        var count_left = 0
-        while x <= conveyor_drop.x2 {
-            sum_left += (x - conveyor.x1)
-            x += 1
-            count_left += 1
-        }
-        let average_left = Double(sum_left) / Double(count_left)
-        
-        // Brute force measure the right direction.
-        x = conveyor_drop.x1
-        var sum_right = 0
-        var count_right = 0
-        while x <= conveyor_drop.x2 {
-            sum_right += (conveyor.x2 - x)
-            count_right += 1
-            x += 1
-        }
-        let average_right = Double(sum_right) / Double(count_right)
-        
-        let smart_average_left = conveyor.average_left(conveyor_drop)
-        let smart_average_right = conveyor.average_right(conveyor_drop)
-        
-        let match_left = abs(average_left - smart_average_left) < 0.25
-        let match_right = abs(average_right - smart_average_right) < 0.25
-        
-        if match_left && match_right {
-            print("✅ MATCH [x: \(conveyor_drop.x1)...\(conveyor_drop.x2)] on Conveyor[\(conveyor.index)]")
-        } else {
-            print("❌ MISMATCH [x: \(conveyor_drop.x1)...\(conveyor_drop.x2)] on Conveyor[\(conveyor.index)]\n  Left  → brute: \(average_left), smart: \(smart_average_left)\n  Right → brute: \(average_right), smart: \(smart_average_right)")
-        }
-    }
-}
-
 func getMinExpectedHorizontalTravelDistance(conveyors: [Conveyor],
-                                            conveyor_drops: [DropInfo.DropInfoData_Conveyor],
-                                            empty_drops: Int,
-                                            total_drops: Int,
+                                            dropInfos: [DropInfo],
                                             locked_conveyor: Conveyor,
                                             locked_direction: Direction) -> Double {
+    
+    let total_drops = (1_000_000)
     
     enum Datum {
         struct DatumDataEmpty {
@@ -92,11 +45,23 @@ func getMinExpectedHorizontalTravelDistance(conveyors: [Conveyor],
     }
     
     var datums = [Datum]()
-    datums.append(.empty(.init(count: empty_drops)))
+    
+    for dropInfo in dropInfos {
+        
+        switch dropInfo {
+        case .empty(let data):
+            //let count =
+            break
+        case .conveyor(let dropInfoData_Conveyor):
+            break
+        }
+    }
+    
+    /*
     for conveyor_drop in conveyor_drops {
         
         let conveyor = conveyor_drop.conveyor
-        let count = (conveyor.x2 - conveyor.x1) + 1
+        let count = conveyor.count(conveyor_drop)
         if conveyor_drop.conveyor == locked_conveyor {
             // This is locked in the direction.
             switch locked_direction {
@@ -125,6 +90,7 @@ func getMinExpectedHorizontalTravelDistance(conveyors: [Conveyor],
                                         x_end: conveyor_drop.x2)))
         }
     }
+    */
     
     print("The Datums: \(datums.count)")
     
@@ -162,6 +128,7 @@ func getMinExpectedHorizontalTravelDistance(conveyors: [Conveyor],
     return (result / MULTIPLIER_D)
 }
 
+/*
 func getMinExpectedHorizontalTravelDistance(conveyors: [Conveyor], dropInfos: [DropInfo], locked_conveyor: Conveyor, locked_direction: Direction) -> Double {
     var empty_drops = [DropInfo.DropInfoData_Empty]()
     var conveyor_drops = [DropInfo.DropInfoData_Conveyor]()
@@ -180,8 +147,6 @@ func getMinExpectedHorizontalTravelDistance(conveyors: [Conveyor], dropInfos: [D
     }
     
     let total_drops = (1_000_000 - 0) + 1
-    print("There are \(empty_drops_sum) empty drops.")
-    print("There are \(total_drops) total drops.")
     
     return getMinExpectedHorizontalTravelDistance(conveyors: conveyors,
                                                   conveyor_drops: conveyor_drops,
@@ -190,6 +155,7 @@ func getMinExpectedHorizontalTravelDistance(conveyors: [Conveyor], dropInfos: [D
                                                   locked_conveyor: locked_conveyor,
                                                   locked_direction: locked_direction)
 }
+*/
 
 func collide(x: Int, y: Int, conveyors: [Conveyor]) -> Conveyor? {
     var result: Conveyor?
@@ -261,7 +227,7 @@ func getMinExpectedHorizontalTravelDistance(_ conveyors: [Conveyor]) -> Float {
         
     }
     
-    
+    /*
     let dropInfos = getDropInfos(conveyors: conveyors)
     
     print("There's \(dropInfos.count) drops.")
@@ -273,6 +239,9 @@ func getMinExpectedHorizontalTravelDistance(_ conveyors: [Conveyor]) -> Float {
             print("\tDROP(Conveyor {\(data.x1) to \(data.x2)} on \(data.conveyor))")
         }
     }
+    */
+    
+    let drops = getDrops(conveyors: conveyors)
     
     var result = Double(100_000_000_000_000_000_000_000_000.0)
     
@@ -303,28 +272,21 @@ func getMinExpectedHorizontalTravelDistance(_ conveyors: [Conveyor]) -> Float {
     //200,000 * 0.4 + ((150,000 + 350,000)/2) * 0.3 = 155,000, which is the minimum achievable
     //expected horizontal travel distance.
     
-    
-    var drops = [DropInfo.DropInfoData_Conveyor]()
-    for dropInfo in dropInfos {
-        switch dropInfo {
-        case .conveyor(let data):
-            drops.append(data)
-        default:
-            break
-        }
-    }
-    validateDrops(conveyor_drops: drops)
-    
-    
+    /*
     var result_for_locked_and_dir = getMinExpectedHorizontalTravelDistance(conveyors: conveyors,
                                                                            dropInfos: dropInfos,
                                                                            locked_conveyor: conveyors[1],
                                                                            locked_direction: .right)
     print("for locked: 1_LOCKED and dir: LEFT, result = \(result_for_locked_and_dir)")
     result = min(result, result_for_locked_and_dir)
+    */
     
     return Float(result)
     
+}
+
+func getMinExpectedHorizontalTravelDistance(_ testCase: TestCase) -> Float {
+    getMinExpectedHorizontalTravelDistance(testCase.conveyors)
 }
 
 func getMinExpectedHorizontalTravelDistance(_ N: Int, _ H: [Int], _ A: [Int], _ B: [Int]) -> Float {
@@ -339,7 +301,7 @@ func getMinExpectedHorizontalTravelDistance(_ N: Int, _ H: [Int], _ A: [Int], _ 
         let y = H[index]
         let x1 = A[index]
         let x2 = B[index]
-        let conveyor = Conveyor(index: index, x1: x1, x2: x2, y: y)
+        let conveyor = Conveyor(name: "c\(index)", index: index, x1: x1, x2: x2, y: y)
         conveyors.append(conveyor)
     }
     

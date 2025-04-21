@@ -11,22 +11,49 @@ struct Runner {
     
     static func run() {
         
+        //Test_Case_Explorer.test(TestCase.test_case_4)
         
-        //Test_Case_Explorer.test(TestCase.test_case_1)
-        //Test_Case_Explorer.test(TestCase.test_case_1_b)
+        //let MED = getMinExpectedHorizontalTravelDistance(TestCase.test_case_1)
+        /*
+        let MED = getMinExpectedHorizontalTravelDistance(TestCase.test_case_stepper_1)
         
-        //Test_Case_Explorer.test(TestCase.test_case_3)
+        print("MED: \(MED)")
         
-        Test_Case_Explorer.test(TestCase.test_case_4)
-        
-        
-        
-        
-        
-        
+        Boundary_Tests.run_closed_closed()
+        Boundary_Tests.run_closed_open()
+        Boundary_Tests.run_open_closed()
+        Boundary_Tests.run_open_open()
         
         
-        //Test_Case_Explorer.test(TestCase.test_case_a)
+        Drop_Tests.test_no_conveyors()
+        */
+        
+        //Drop_Tests.test_all()
+        
+        //Drop_Tests.test_one_conveyor_small()
+        
+        
+        //Drop_Tests.test_failed_test_a()
+        
+        //Drop_Tests.test_failed_test_b()
+        
+        
+        
+        Drop_Tests.test_10000_two_conveyor()
+        //Drop_Tests.test_10000_three_conveyor()
+        
+        //Drop_Tests.test_failed_test_e()
+        
+        
+        //Drop_Tests.test_failed_test_c()
+        //Drop_Tests.test_failed_test_d()
+        
+        
+        //test_all()
+        
+        //Drop_Tests.test_mixed_overlap_under_mono_with_flare()
+        
+        //Drop_Tests.test_mixed_overlap_under_mono()
         
         
     }

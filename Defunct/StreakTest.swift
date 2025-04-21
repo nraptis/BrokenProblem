@@ -9,6 +9,7 @@ import Foundation
 
 class StreakTest {
     
+    /*
     static func run_sum() {
         
         let test1 = Conveyor(index: 0, x1: 0, x2: 100, y: 10)
@@ -263,5 +264,6 @@ class StreakTest {
             print("Steak Tests, test3_passes = \(test3_passes)")
         }
     }
+    */
     
 }
