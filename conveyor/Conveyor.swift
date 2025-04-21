@@ -9,6 +9,11 @@ import Foundation
 
 class Conveyor: Hashable, CustomStringConvertible {
     
+    static var mock: Conveyor {
+        Conveyor(name: "mock", index: -1, x1: 0, x2: 1_000_000, y: 0)
+    }
+    
+    
     let name: String
     let index: Int
     
@@ -81,93 +86,118 @@ class Conveyor: Hashable, CustomStringConvertible {
             return Double(sum) / Double(count)
         }
     }
-
-    func average_right(_ dropInfo: DropInfo.DropInfoData_Conveyor) -> Double {
-        
-        if dropInfo.x1 == dropInfo.x2 {
-            // This is definitely right, as proven through observation.
-            // In this case, it's a one-point drop, there is no interval.
-            return Double(x2 - dropInfo.x1)
-        }
-        
-        if dropInfo.x1 == (x1 + 1) {
-            if dropInfo.x2 == (x2 - 1) {
-                // This is definitely right, as illustrated by example #1
-                return average_all_smart(x1: dropInfo.x1, x2: dropInfo.x2, direction: .right)
-                // This is also right, as observed
-                // return average_all_smart(x1: dropInfo.x1 - 1, x2: dropInfo.x2 + 1, direction: .right)
-                
-            } else {
-                // This is definitely right, as illustrated by example #1
-                // This is correct for the case (100_000, 400_000]
-                // Therefore, it seems to be correct this type of case.
-                return average_all_smart(x1: dropInfo.x1 - 1, x2: dropInfo.x2, direction: .right)
-            }
-        } else if dropInfo.x2 == (x2 - 1) {
-            // This seems correct, as illustrated by this example:
-            //DropInfo => Conveyor [100001, 599999] @ 0 C[100000, 600000]
-            //DropInfo => Conveyor [600000, 799999] @ 1 C[400000, 800000]
-            return average_all_smart(x1: dropInfo.x1, x2: dropInfo.x2 + 1, direction: .right)
-        } else {
-            // This is definitely right, as illustrated by the (x1, x2) = (x1 - 1, x2 + 2) examples.
-            return average_all_smart(x1: dropInfo.x1, x2: dropInfo.x2, direction: .right)
-        }
-    }
-
-    func average_left(_ dropInfo: DropInfo.DropInfoData_Conveyor) -> Double {
-        
-        if dropInfo.x1 == dropInfo.x2 {
-            // This is definitely right, as proven through observation.
-            // In this case, it's a one-point drop, there is no interval.
-            return Double(dropInfo.x1 - x1)
-        }
-        
-        if dropInfo.x1 == (x1 + 1) {
-            if dropInfo.x2 == (x2 - 1) {
-                // This is definitely right, as illustrated by example #1
-                return average_all_smart(x1: dropInfo.x1, x2: dropInfo.x2, direction: .left)
-                // This is also right, as observed
-                //return average_all_smart(x1: dropInfo.x1 - 1, x2: dropInfo.x2 + 1, direction: .left)
-            } else {
-                // This is definitely right, as illustrated by example #1
-                // This is correct for the case (100_000, 400_000]
-                // Therefore, it seems to be correct this type of case.
-                return average_all_smart(x1: dropInfo.x1 - 1, x2: dropInfo.x2, direction: .left)
-            }
-        } else if dropInfo.x2 == (x2 - 1) {
-            // This seems correct, as illustrated by this example:
-            //DropInfo => Conveyor [100001, 599999] @ 0 C[100000, 600000]
-            //DropInfo => Conveyor [600000, 799999] @ 1 C[400000, 800000]
-            return average_all_smart(x1: dropInfo.x1, x2: dropInfo.x2 + 1, direction: .left)
-        } else {
-            // This is definitely right, as illustrated by the (x1, x2) = (x1 - 1, x2 + 2) examples.
-            return average_all_smart(x1: dropInfo.x1, x2: dropInfo.x2, direction: .left)
-        }
-    }
-    
-    func count(_ dropInfo: DropInfo.DropInfoData_Conveyor) -> Int {
-        
-        if dropInfo.x1 == dropInfo.x2 {
-            // In this case, it's a one-point drop, there is no interval.
-            return 1
-        }
-        
-        if dropInfo.x1 == (x1 + 1) {
-            if dropInfo.x2 == (x2 - 1) {
-                return (dropInfo.x2 - dropInfo.x1) + 1
-                
-            } else {
-                return (dropInfo.x2 - dropInfo.x1) + 1
-            }
-        } else if dropInfo.x2 == (x2 - 1) {
-            return (dropInfo.x2 - dropInfo.x1) + 1
-        } else {
-            return (dropInfo.x2 - dropInfo.x1) + 1
-        }
-    }
     
     var description: String {
         return "{\(name), [\(x1) to \(x2), y=\(y)]}"
+    }
+    
+    func average_left(span: Span) -> Double {
+        switch span {
+        case .point:
+            // This occupies 0% of the whole thing on a continuous scale.
+            return 0.0
+        case .interval(let interval):
+            let start = interval.start
+            let end = interval.end
+            let range_start: Int
+            let sample_start: Int
+            switch start {
+            case .closed(let number):
+                range_start = number
+                sample_start = number
+            case .open(let number):
+                range_start = number
+                sample_start = number
+            }
+            let range_end: Int
+            let sample_end: Int
+            switch end {
+            case .closed(let number):
+                range_end = number
+                sample_end = number
+            case .open(let number):
+                range_end = number
+                sample_end = number
+            }
+            let count = (range_end - range_start)
+            if count <= 0 {
+                return 0.0
+            }
+            let sample = average_all_smart(x1: sample_start, x2: sample_end, direction: .left)
+            return sample
+        }
+    }
+    
+    func average_right(span: Span) -> Double {
+        switch span {
+        case .point:
+            // This occupies 0% of the whole thing on a continuous scale.
+            return 0.0
+        case .interval(let interval):
+            let start = interval.start
+            let end = interval.end
+            let range_start: Int
+            let sample_start: Int
+            switch start {
+            case .closed(let number):
+                range_start = number
+                sample_start = number
+            case .open(let number):
+                range_start = number
+                sample_start = number
+            }
+            let range_end: Int
+            let sample_end: Int
+            switch end {
+            case .closed(let number):
+                range_end = number
+                sample_end = number
+            case .open(let number):
+                range_end = number
+                sample_end = number
+            }
+            let count = (range_end - range_start)
+            if count <= 0 {
+                return 0.0
+            }
+            let sample = average_all_smart(x1: sample_start, x2: sample_end, direction: .right)
+            return sample
+        }
+    }
+    
+    static func count(span: Span) -> Int {
+        switch span {
+        case .point:
+            // This occupies 0% of the whole thing on a continuous scale.
+            return 0
+        case .interval(let interval):
+            let start = interval.start
+            let end = interval.end
+            let range_start: Int
+            switch start {
+            case .closed(let number):
+                range_start = number
+            case .open(let number):
+                range_start = number
+            }
+            let range_end: Int
+            switch end {
+            case .closed(let number):
+                range_end = number
+            case .open(let number):
+                range_end = number
+            }
+            let count = (range_end - range_start)
+            return count
+        }
+    }
+    
+    static func percent(span: Span, multiplier: Double) -> Double {
+        let count = count(span: span)
+        if count <= 0 {
+            return 0.0
+        }
+        return (Double(count) * multiplier) / Double(1_000_000)
     }
     
 }

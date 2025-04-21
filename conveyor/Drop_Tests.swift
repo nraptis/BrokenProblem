@@ -1209,7 +1209,7 @@ struct Drop_Tests {
             validate(name: "test_10000_twenty_conveyor",
                      drops_expected: drops_expected, drops_actual: drops_actual, conveyors: conveyors)
         }
-        print("test_10000_three_conveyor => Done!")
+        print("test_10000_twenty_conveyor => Done!")
     }
     
     static func test_10000_to_max() {
