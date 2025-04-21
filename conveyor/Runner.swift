@@ -39,8 +39,13 @@ struct Runner {
         
         
         
-        Drop_Tests.test_10000_two_conveyor()
-        //Drop_Tests.test_10000_three_conveyor()
+        Drop_Tests.test_all()
+        
+        
+        
+        
+        
+        //Drop_Tests.test_all()
         
         //Drop_Tests.test_failed_test_e()
         

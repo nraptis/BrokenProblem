@@ -24,6 +24,16 @@ struct Drop_Tests {
         test_failed_test_c()
         test_failed_test_d()
         test_failed_test_e()
+        for _ in 0..<10 {
+            test_10000_two_conveyor()
+            test_10000_three_conveyor()
+            test_10000_twenty_conveyor()
+            test_10000_to_max()
+        }
+        
+        for _ in 0..<5 {
+            test_100000_whole_lotta_love()
+        }
         
     }
     
@@ -554,6 +564,105 @@ struct Drop_Tests {
         
         let brute = getDrops_brute_force(conveyors: conveyors)
         validate(name: "BRUTE_test_failed_test_e",
+                 drops_expected: expected,
+                 drops_actual: brute,
+                 conveyors: conveyors)
+    }
+    
+    static func test_failed_test_f() {
+        
+        let c0 = Conveyor(name: "c0", index: 0, x1: 29, x2: 63, y: 68)
+        let c1 = Conveyor(name: "c1", index: 1, x1: 9, x2: 29, y: 46)
+        let c2 = Conveyor(name: "c2", index: 2, x1: 7, x2: 94, y: 36)
+        
+        
+        //[0, 7]
+        //(7, 9]
+        //(9, 29)
+        //[29]
+        //(29, 63)
+        //[63, 94)
+        //[94, 1_000_000]
+        
+        let conveyors = [c0, c1, c2]
+        var expected = [Drop]()
+        if true {
+            // This is from 0 to c0
+            let start = Boundary.closed(0)
+            let end = Boundary.closed(7)
+            let interval = Interval(start: start, end: end)
+            let span = Span.interval(interval)
+            let drop = Drop.empty(span)
+            expected.append(drop)
+        }
+        
+        if true {
+            // This is from 0 to c0
+            let start = Boundary.open(7)
+            let end = Boundary.closed(9)
+            let interval = Interval(start: start, end: end)
+            let span = Span.interval(interval)
+            let drop = Drop.conveyor(span, c2)
+            expected.append(drop)
+        }
+        
+        if true {
+            // This is from 0 to c0
+            let start = Boundary.open(9)
+            let end = Boundary.open(29)
+            let interval = Interval(start: start, end: end)
+            let span = Span.interval(interval)
+            let drop = Drop.conveyor(span, c1)
+            expected.append(drop)
+        }
+        
+        if true {
+            // This is from 0 to c0
+            let span = Span.point(29)
+            let drop = Drop.conveyor(span, c2)
+            expected.append(drop)
+        }
+        
+        if true {
+            // This is from 0 to c0
+            let start = Boundary.open(29)
+            let end = Boundary.open(63)
+            let interval = Interval(start: start, end: end)
+            let span = Span.interval(interval)
+            let drop = Drop.conveyor(span, c0)
+            expected.append(drop)
+        }
+        
+        if true {
+            // This is from 0 to c0
+            let start = Boundary.closed(63)
+            let end = Boundary.open(94)
+            let interval = Interval(start: start, end: end)
+            let span = Span.interval(interval)
+            let drop = Drop.conveyor(span, c2)
+            expected.append(drop)
+        }
+        
+        
+        if true {
+            // This is from 0 to c0
+            let start = Boundary.closed(94)
+            let end = Boundary.closed(1_000_000)
+            let interval = Interval(start: start, end: end)
+            let span = Span.interval(interval)
+            let drop = Drop.empty(span)
+            expected.append(drop)
+        }
+        
+        let actual = getDrops(conveyors: conveyors)
+        validate(name: "test_failed_test_f",
+                 drops_expected: expected,
+                 drops_actual: actual,
+                 conveyors: conveyors)
+        
+        
+        let brute = getDrops_brute_force(conveyors: conveyors)
+        validate(name: "BRUTE_test_failed_test_f",
                  drops_expected: expected,
                  drops_actual: brute,
                  conveyors: conveyors)
@@ -1090,13 +1199,39 @@ struct Drop_Tests {
             
         }
         print("test_10000_three_conveyor => Done!")
-        
-        
     }
     
+    static func test_10000_twenty_conveyor() {
+        for _ in 0..<10000 {
+            let conveyors = GENERATE(min_count: 1, max_count: 20)
+            let drops_actual = getDrops(conveyors: conveyors)
+            let drops_expected = getDrops_brute_force(conveyors: conveyors)
+            validate(name: "test_10000_twenty_conveyor",
+                     drops_expected: drops_expected, drops_actual: drops_actual, conveyors: conveyors)
+        }
+        print("test_10000_three_conveyor => Done!")
+    }
     
+    static func test_10000_to_max() {
+        for _ in 0..<10000 {
+            let conveyors = GENERATE(min_count: 1, max_count: 25, min_x: 1_000_000-100, max_x: 1_000_000)
+            let drops_actual = getDrops(conveyors: conveyors)
+            let drops_expected = getDrops_brute_force(conveyors: conveyors)
+            validate(name: "test_10000_to_max",
+                     drops_expected: drops_expected, drops_actual: drops_actual, conveyors: conveyors)
+        }
+        print("test_10000_to_max => Done!")
+    }
     
-    
-    
+    static func test_100000_whole_lotta_love() {
+        for _ in 0..<100000 {
+            let conveyors = GENERATE(min_count: 0, max_count: 40, min_x: 0, max_x: 1_000_000)
+            let drops_actual = getDrops(conveyors: conveyors)
+            let drops_expected = getDrops_brute_force(conveyors: conveyors)
+            validate(name: "test_100000_whole_lotta_love",
+                     drops_expected: drops_expected, drops_actual: drops_actual, conveyors: conveyors)
+        }
+        print("test_100000_whole_lotta_love => Done!")
+    }
     
 }

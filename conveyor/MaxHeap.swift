@@ -7,7 +7,7 @@
 
 import Foundation
 
-class MaxheapIndexedHeap {
+class MaxHeap {
     
     private(set) var data = [Conveyor]()
     private(set) var count: Int = 0

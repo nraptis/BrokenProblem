@@ -74,7 +74,6 @@ func getDrops_brute_force(conveyors: [Conveyor]) -> [Drop] {
         landing[x] = conveyor
     }
     
-    var prev_conveyor: Conveyor?
     var index = (lowest_x + 1)
     while index <= (highest_x - 1) {
         
@@ -87,6 +86,7 @@ func getDrops_brute_force(conveyors: [Conveyor]) -> [Drop] {
         
         let x1 = index
         let x2 = seek - 1
+        
         
         if let current_conveyor = current_conveyor {
             
@@ -132,11 +132,36 @@ func getDrops_brute_force(conveyors: [Conveyor]) -> [Drop] {
                 end = .closed(x2)
             }
             
-            let interval = Interval.init(start: start, end: end)
-            let span = Span.interval(interval)
-            let drop = Drop.conveyor(span, current_conveyor)
-            result.append(drop)
+            // If these are the same and closed, make a point
+            let single_point: Bool
+            var sp_value = 0
+            switch start {
+            case .closed(let start_value):
+                switch end {
+                case .closed(let end_value):
+                    if start_value == end_value {
+                        single_point = true
+                        sp_value = start_value
+                    } else {
+                        single_point = false
+                    }
+                case .open:
+                    single_point = false
+                }
+            case .open:
+                single_point = false
+            }
             
+            if single_point {
+                let span = Span.point(sp_value)
+                let drop = Drop.conveyor(span, current_conveyor)
+                result.append(drop)
+            } else {
+                let interval = Interval.init(start: start, end: end)
+                let span = Span.interval(interval)
+                let drop = Drop.conveyor(span, current_conveyor)
+                result.append(drop)
+            }
         } else {
             
             if x1 == x2 {
@@ -152,12 +177,8 @@ func getDrops_brute_force(conveyors: [Conveyor]) -> [Drop] {
                 result.append(drop)
             }
         }
-        
-        
-        prev_conveyor = current_conveyor
         index = seek
     }
-    
     
     if highest_x < 1_000_000 {
         let start = Boundary.closed(highest_x)
@@ -190,7 +211,7 @@ func getDrops(conveyors: [Conveyor]) -> [Drop] {
     }
     actions.sort { $0.x < $1.x }
     
-    let heap = MaxheapIndexedHeap()
+    let heap = MaxHeap()
     
     var actionIndex = 0
     
@@ -204,33 +225,42 @@ func getDrops(conveyors: [Conveyor]) -> [Drop] {
             nextIndex += 1
         }
         
-        var current_x = 0
-        var list = [ConveyorSweepAction]()
+        // First the drops:
+        let startIndex = actionIndex
         while actionIndex < nextIndex {
             let action = actions[actionIndex]
-            list.append(action)
-            current_x = action.x
             switch action.type {
             case .add:
-                heap.insert(action.conveyor)
+                break
             case .remove:
                 heap.remove(action.conveyor)
             }
             actionIndex += 1
         }
         
+        // Get the top shelf.
+        let top_shelf = heap.peek()
+        
+        // Now the adds.
+        actionIndex = startIndex
+        var current_x = 0
+        while actionIndex < nextIndex {
+            let action = actions[actionIndex]
+            current_x = action.x
+            switch action.type {
+            case .add:
+                heap.insert(action.conveyor)
+            case .remove:
+                break
+            }
+            actionIndex += 1
+        }
+        
         if let current_conveyor = heap.peek() {
-            //print("SSLOG => current_x = \(current_x), Now what?, conv = \(current_conveyor.name)")
-            
-            
             if let _previous_conveyor = previous_conveyor {
-                
                 if current_conveyor === _previous_conveyor {
                     
                 } else {
-                    if previous_x == current_x {
-                        fatalError("Not expected to be possible that previous_x == current_x")
-                    }
                     
                     // We go along the conveyor from previous_x to current_x
                     let start: Boundary
@@ -257,43 +287,36 @@ func getDrops(conveyors: [Conveyor]) -> [Drop] {
                     
                     if _previous_conveyor.x2 == current_conveyor.x1 {
                         let span = Span.point(current_conveyor.x1)
-                        let drop = Drop.empty(span)
-                        result.append(drop)
+                        if let top_shelf = top_shelf {
+                            let drop = Drop.conveyor(span, top_shelf)
+                            result.append(drop)
+                            
+                        } else {
+                            let drop = Drop.empty(span)
+                            result.append(drop)
+                        }
                     }
-                    
                 }
-                
             } else {
                 if previous_x == current_x {
                     let span = Span.point(current_x)
                     let drop = Drop.empty(span)
                     result.append(drop)
-                    
                     previous_conveyor = current_conveyor
                     previous_x = current_x
                 } else {
-                    
                     let start = Boundary.closed(previous_x)
                     let end = Boundary.closed(current_x)
                     let interval = Interval(start: start, end: end)
                     let span = Span.interval(interval)
                     let drop = Drop.empty(span)
-                    
                     result.append(drop)
-                    
                     previous_conveyor = current_conveyor
                     previous_x = current_x
                 }
             }
         } else {
-            //print("SSLOG => current_x = \(current_x), Now what?, conv = NULL")
-            
             if let _previous_conveyor = previous_conveyor {
-                
-                if previous_x == current_x {
-                    fatalError("This should never happen, previous_x == current_x")
-                }
-                
                 // We go along the conveyor from previous_x to current_x
                 let start: Boundary
                 if previous_x == _previous_conveyor.x1 {
@@ -309,18 +332,13 @@ func getDrops(conveyors: [Conveyor]) -> [Drop] {
                 result.append(drop)
                 previous_conveyor = nil
                 previous_x = current_x
-            } else {
-                fatalError("Is this possible? There isn't a previous conveyor, but we're processing the first one.")
-                
             }
         }
     }
     
     if previous_x == max_x {
-        //print("In this case, we end on the last converter.")
         let span = Span.point(max_x)
         let drop = Drop.empty(span)
-        //print("Appending (CON) drop for good: \(drop)")
         result.append(drop)
     } else {
         let start = Boundary.closed(previous_x)
@@ -328,64 +346,8 @@ func getDrops(conveyors: [Conveyor]) -> [Drop] {
         let interval = Interval(start: start, end: end)
         let span = Span.interval(interval)
         let drop = Drop.empty(span)
-        //print("Appending (CON) drop for good: \(drop)")
         result.append(drop)
     }
-    
-    // These are the types of transitions:
-    
-    //---------------------------
-    //
-    //     [ c0 ]
-    //     ..................
-    //---------------------------
-    //     In this case, we can do an empty drop at 0..
-    //     In this case, we can do (c0.x1, x0.x2)
-    //     In this case, we can do an empty drop at [c0.x2, end]
-    
-    //---------------------------
-    //
-    //         [ c0 ]
-    //     ..................
-    //---------------------------
-    //     In this case, we can do an empty drop at [0, c0.x1]
-    //     In this case, we can do (c0.x1, x0.x2)
-    //     In this case, we can do an empty drop at [c0.x2, end]
-    
-    //---------------------------
-    //
-    //     [   c0   ]
-    //            [   c1   ]
-    //     ..................
-    //---------------------------
-    //     In this case, we can do a c0 drop at (c0.x1, c0.x2)
-    //     In this case, we can do a c1 drop at [c0.x2, c1.x2)
-    
-    //---------------------------
-    //
-    //     [   c0   ]
-    //              [   c1   ]
-    //     ..................
-    //---------------------------
-    //     In this case, we can do a c0 drop at (c0.x1, c0.x2)
-    //     In this case, we can do an empty drop at c0.x2
-    //     In this case, we can do a c1 drop at (c1.x1, c1.x2)
-    
-    //---------------------------
-    //
-    //     [   c0   ]    [   c1   ]
-    //            [   c2   ]
-    //     ..................
-    //---------------------------
-    //     In this case, we can do a c0 drop at (c0.x1, c0.x2)
-    //     In this case, we can do a c2 drop at [c0.x2, c1.x1]
-    //     In this case, we can do a c1 drop at (c1.x1, c1.x2)
-    
-    //print("Conveyor Sweep Actions: \(actions.count)")
-    for action in actions {
-    //    print(action)
-    }
-    
     
     return result
 }
