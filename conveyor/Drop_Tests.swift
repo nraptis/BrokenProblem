@@ -34,18 +34,15 @@ struct Drop_Tests {
         for _ in 0..<5 {
             test_100000_whole_lotta_love()
         }
-        
     }
     
     static func print_one(name: String, drops_expected: [Drop]) {
-        
         print("[Passed] =======>")
         print("[Passed] {\(name)}: Expected Drops")
         for index in drops_expected.indices {
             let drop = drops_expected[index]
             print("[Passed] @ \(index), Drop = \(drop)")
         }
-        
     }
     
     static func print_both(name: String, drops_expected: [Drop], drops_actual: [Drop]) {
@@ -68,9 +65,6 @@ struct Drop_Tests {
     }
     
     static func validate(name: String, drops_expected: [Drop], drops_actual: [Drop], conveyors: [Conveyor]) {
-        
-        
-        
         if drops_expected.count != drops_actual.count {
             for conveyor in conveyors {
                 print("[C] ==> \(conveyor)")

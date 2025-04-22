@@ -13,12 +13,34 @@ struct Runner {
         
         //Test_Case_Explorer.test(TestCase.test_case_4)
         
-        let MED1 = getMinExpectedHorizontalTravelDistance(TestCase.test_case_1)
-        print("MED1: \(MED1)")
+        //let MED1 = getMinExpectedHorizontalTravelDistance(TestCase.test_case_1)
+        //print("MED1: \(MED1)")
         
-        let MED2 = getMinExpectedHorizontalTravelDistance(TestCase.test_case_2)
-        print("MED2: \(MED2)")
+        //let STAIR = getMinExpectedHorizontalTravelDistance(TestCase.test_case_stairs)
+        //print("STAIR: \(STAIR)")
         
+        //let STAIR_D = getMinExpectedHorizontalTravelDistance(TestCase.test_case_stairs_with_double)
+        //print("STAIR_D: \(STAIR_D)")
+        
+        
+        let STAIR_INV = getMinExpectedHorizontalTravelDistance(TestCase.test_case_stairs_inverted)
+        print("STAIR_INV: \(STAIR_INV)")
+        
+        
+        //CombineDuplicates_Test.test_all()
+        
+        
+        //CombineDuplicates_Test.test_failed_case_a()
+        
+        
+        //let LARGE = getMinExpectedHorizontalTravelDistance(TestCase.test_case_large)
+        //print("LARGE: \(LARGE)")
+        
+        
+        
+        
+        
+        //FindLeftRightSets_Tests.test_example_a()
         
         /*
         FindColliders_Tests.test_simple_overlap_under_mono()

@@ -112,6 +112,41 @@ func getFallCostLeft(conveyor: Conveyor,
     }
 }
 
+func geUniformTravelDistance(conveyors: [Conveyor],
+                                            drops: [Drop]) -> Double {
+    
+    let MULTIPLIER_I: Int = 8_000_000
+    let MULTIPLIER_D: Double = Double(MULTIPLIER_I)
+    
+    var result = Double(0.0)
+    
+    for drop in drops {
+        switch drop {
+            
+        case .conveyor(let span, let conveyor):
+            let percent_m = Conveyor.percent(span: span, multiplier: MULTIPLIER_D)
+
+                let left_lhs = conveyor.average_left(span: span)
+                let left_rhs = conveyor.cost_left_uniform
+            
+                let left_total = (left_lhs + left_rhs)
+                
+                let right_lhs = conveyor.average_right(span: span)
+                let right_rhs = conveyor.cost_right_uniform
+                
+                let right_total = (right_lhs + right_rhs)
+                
+                let average = (left_total + right_total) / 2.0
+                result += average * percent_m
+            
+        case .empty:
+            break
+        }
+    }
+    
+    return (result / MULTIPLIER_D)
+}
+
 func getMinExpectedHorizontalTravelDistance(conveyors: [Conveyor],
                                             drops: [Drop],
                                             locked_conveyor: Conveyor,
@@ -182,11 +217,97 @@ func getMinExpectedHorizontalTravelDistance(_ conveyors: [Conveyor]) -> Float {
     }
     
     findColliders(conveyors: conveyors)
-    
+    findParentsAndRoot(conveyors: conveyors)
+    findLeftRightSets(conveyors: conveyors)
+    findFallCostsUniform(conveyors: conveyors)
+
     let drops = getDrops(conveyors: conveyors)
     
-    var result = Double(100_000_000_000_000_000_000_000_000.0)
+    for drop in drops {
+        switch drop {
+        case .empty:
+            break
+        case .conveyor(let span, let conveyor):
+            conveyor.drops.append(drop)
+        }
+    }
     
+    let uniform = geUniformTravelDistance(conveyors: conveyors, drops: drops)
+    var result = uniform
+    
+    
+    let mock = getMinExpectedHorizontalTravelDistance(conveyors: conveyors,
+                                                      drops: drops,
+                                                      locked_conveyor: Conveyor.mock,
+                                                      locked_direction: .left)
+
+    print("uniform = \(uniform)")
+    print("mock = \(mock)")
+    
+    calculateEdgeInfo(conveyors: conveyors)
+    
+    print("======<<=====>>=====")
+    
+    for conveyor in conveyors {
+        print(conveyor)
+        print(conveyor.edge)
+    }
+    
+    print("======<<=====>>=====")
+    
+    /*
+    calculateHits(conveyors: conveyors, drops: drops)
+    
+    for conveyor in conveyors {
+        print(conveyor)
+        for index in conveyor.hit_xs.indices {
+            let x = conveyor.hit_xs[index]
+            let bag = conveyor.hit_bags[index]
+            print("\tX @ \(x)")
+            for (hit_conveyor, hit_info) in bag.dict {
+                print("\t\tinfo with \(hit_info.dict.count) entries")
+                for (_, hit) in hit_info.dict {
+                    print("\t\t\thit conveyor = \(hit_conveyor.name), length = \(hit.length), count = \(hit.count)")
+                }
+            }
+        }
+    }
+    
+     print("======<<=====>>=====")
+    
+    for conveyor in conveyors {
+        print(conveyor)
+        
+        for (parent_conveyor, splat_group) in conveyor.splat_info_right.dict {
+            print("\tRIGHT, at Conveyor: \(conveyor.name) (Parent = \(parent_conveyor.name))")
+            for (local_length, splat_piece) in splat_group.dict {
+                
+                print("\t\tRIGHT, LocalLength: \(local_length) (Pieces = \(splat_piece.dict.count))")
+                
+                for (_, splat) in splat_piece.dict {
+                    print("\t\t\tRIGHT, Splat, EndLength: \(splat.length), Count: \(splat.count)")
+                }
+            }
+        }
+        
+        for (parent_conveyor, splat_group) in conveyor.splat_info_left.dict {
+            print("\tLEFT, at Conveyor: \(conveyor.name) (Parent = \(parent_conveyor.name))")
+            for (local_length, splat_piece) in splat_group.dict {
+                
+                print("\t\tLEFT, LocalLength: \(local_length) (Pieces = \(splat_piece.dict.count))")
+                
+                for (_, splat) in splat_piece.dict {
+                    print("\t\t\tLEFT, Splat, EndLength: \(splat.length), Count: \(splat.count)")
+                }
+            }
+        }
+        
+    }
+    */
+    
+    print("======<<=====>>=====")
+    
+    /*
     for conveyor in conveyors {
         for direction in Direction.allCases {
             let result_for_locked_and_dir = getMinExpectedHorizontalTravelDistance(conveyors: conveyors,
@@ -197,6 +318,7 @@ func getMinExpectedHorizontalTravelDistance(_ conveyors: [Conveyor]) -> Float {
             result = min(result, result_for_locked_and_dir)
         }
     }
+    */
     
     return Float(result)
     

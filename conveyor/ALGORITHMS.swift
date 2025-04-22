@@ -7,6 +7,52 @@
 
 import Foundation
 
+var left_collider: Conveyor?
+var right_collider: Conveyor?
+
+var left_set = Set<Conveyor>()
+var right_set = Set<Conveyor>()
+
+// @ Precondition: findColliders
+// @ Precondition: findParentsAndRoot
+func findLeftRightSets(conveyors: [Conveyor]) {
+    
+    // We go from the bottom-up...
+    let conveyors = conveyors.sorted { $0.y < $1.y }
+    for conveyor in conveyors {
+        conveyor.is_storing_left_and_right_sets = false
+    }
+    for conveyor in conveyors {
+        if conveyor.shouldStoreLeftAndRightSets() {
+            conveyor.populateLeftAndRightSets()
+        }
+    }
+}
+
+func findParentsAndRoot(conveyors: [Conveyor]) {
+ 
+    for conveyor in conveyors {
+        conveyor.parents.removeAll(keepingCapacity: true)
+    }
+    
+    for conveyor in conveyors {
+        if let left_collider = conveyor.left_collider {
+            left_collider.parents.insert(conveyor)
+        }
+        if let right_collider = conveyor.right_collider {
+            right_collider.parents.insert(conveyor)
+        }
+    }
+    
+    for conveyor in conveyors {
+        if conveyor.parents.isEmpty {
+            conveyor.is_root = true
+        } else {
+            conveyor.is_root = false
+        }
+    }
+}
+
 func findColliders(conveyors: [Conveyor]) {
     
     var actions = [CollideSweepAction]()

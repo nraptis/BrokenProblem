@@ -9,10 +9,87 @@ import Foundation
 
 class Conveyor: Hashable, CustomStringConvertible {
     
+    static let INVALID = Double(-100_000_000.0)
+    
+    static let SO_MANY_PARENTS_THAT_WE_STORE_LEFT_AND_RIGHT = 4
+    
+    //@ Precondition: parents is populated.
+    //@ Precondition: is_root is populated.
+    //@ Precondition: left_collider is populated.
+    //@ Precondition: right_collider is populated.
+    func shouldStoreLeftAndRightSets() -> Bool {
+        if is_root {
+            // For root conveyors, we will always store the left and right.
+            return true
+        }
+        if parents.count >= Self.SO_MANY_PARENTS_THAT_WE_STORE_LEFT_AND_RIGHT {
+            // If we have a lot of parents, yes, we will store the left and right.
+            return true
+        }
+        
+        return false
+    }
+    
+    //@ Precondition: is_storing_left_and_right_sets is completed for all lower conveyors.
+    //@ Precondition: left_collider is populated.
+    //@ Precondition: right_collider is populated.
+    func populateLeftAndRightSets() {
+        is_storing_left_and_right_sets = true
+        
+        if let left_collider = left_collider {
+            var stack = [Conveyor]()
+            stack.append(left_collider)
+            while !stack.isEmpty {
+                if let conveyor = stack.popLast() {
+                    left_set.insert(conveyor)
+                    if conveyor.is_storing_left_and_right_sets {
+                        for child in conveyor.left_set {
+                            left_set.insert(child)
+                        }
+                        for child in conveyor.right_set {
+                            left_set.insert(child)
+                        }
+                    } else {
+                        if let left_collider = conveyor.left_collider {
+                            stack.append(left_collider)
+                        }
+                        if let right_collider = conveyor.right_collider {
+                            stack.append(right_collider)
+                        }
+                    }
+                }
+            }
+        }
+        
+        if let right_collider = right_collider {
+            var stack = [Conveyor]()
+            stack.append(right_collider)
+            while !stack.isEmpty {
+                if let conveyor = stack.popLast() {
+                    right_set.insert(conveyor)
+                    if conveyor.is_storing_left_and_right_sets {
+                        for child in conveyor.left_set {
+                            right_set.insert(child)
+                        }
+                        for child in conveyor.right_set {
+                            right_set.insert(child)
+                        }
+                    } else {
+                        if let left_collider = conveyor.left_collider {
+                            stack.append(left_collider)
+                        }
+                        if let right_collider = conveyor.right_collider {
+                            stack.append(right_collider)
+                        }
+                    }
+                }
+            }
+        }
+    }
+    
     static var mock: Conveyor {
         Conveyor(name: "mock", index: -1, x1: 0, x2: 1_000_000, y: 0)
     }
-    
     
     let name: String
     let index: Int
@@ -23,8 +100,40 @@ class Conveyor: Hashable, CustomStringConvertible {
     let x1: Int
     let x2: Int
     
+    var parents = Set<Conveyor>()
+    
+    var is_root = false
+    
+    var is_storing_left_and_right_sets = false
+    
+    var edge = EdgeInfo()
+    
+    
+    var hits = [Int: HitBag]()
+    
+    var drops = [Drop]()
+    
+    // This is a list based on the hit x's.
+    // It's computed after all the hits are known.
+    var hit_xs = [Int]()
+    var hit_bags = [HitBag]()
+    
+    
+    var splat_info_left = SplatInfo()
+    var splat_info_right = SplatInfo()
+    
+    // Uniform means that
+    var cost_left_uniform: Double = INVALID
+    var cost_right_uniform: Double = INVALID
+    
+    var cost_left_winched: Double = INVALID
+    var cost_right_winched: Double = INVALID
+    
     var left_collider: Conveyor?
     var right_collider: Conveyor?
+    
+    var left_set = Set<Conveyor>()
+    var right_set = Set<Conveyor>()
     
     init(name: String, index: Int, x1: Int, x2: Int, y: Int) {
         let _x1 = min(x1, x2)
@@ -88,7 +197,20 @@ class Conveyor: Hashable, CustomStringConvertible {
     }
     
     var description: String {
-        return "{\(name), [\(x1) to \(x2), y=\(y)]}"
+        
+        if let left_collider = left_collider {
+            if let right_collider = right_collider {
+                return "{\(name), [\(x1) to \(x2), y=\(y)] left: \(left_collider.name) right: \(right_collider.name)}"
+            } else {
+                return "{\(name), [\(x1) to \(x2), y=\(y)] left: \(left_collider.name)}"
+            }
+        } else if let right_collider = right_collider {
+            return "{\(name), [\(x1) to \(x2), y=\(y)] right: \(right_collider.name)}"
+        } else {
+            return "{\(name), [\(x1) to \(x2), y=\(y)]}"
+        }
+        
+        
     }
     
     func average_left(span: Span) -> Double {
