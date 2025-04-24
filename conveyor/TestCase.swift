@@ -58,10 +58,10 @@ struct TestCase {
         // x2 = 7000, good
         let c7 = Conveyor(name: "c7", index: 7, x1: 5_000, x2: 7_000, y: 2)
         
-        // y = 3, good
+        // y = 1, good
         // x1 = 8000, good
         // x2 = 14000, good
-        let c8 = Conveyor(name: "c8", index: 8, x1: 8_000, x2: 14_000, y: 3)
+        let c8 = Conveyor(name: "c8", index: 8, x1: 8_000, x2: 14_000, y: 1)
         
         // y = 9, good
         // x1 = 11000, good
@@ -121,36 +121,42 @@ struct TestCase {
         return TestCase(conveyors: [c0, c1, c2, c3, c4, c5, c6, c7, c8, c9])
     }
     
+    static var test_case_five_banger: TestCase {
+        
+        // Top Row.
+        // c0, (1000 to 4000, y = 10)
+        let c0 = Conveyor(name: "c0", index: 0, x1: 4_000, x2: 5_000, y: 10)
+        // c1 (7000 to 10000, y = 10)
+        let c1 = Conveyor(name: "c1", index: 1, x1: 7_000, x2: 10_000, y: 10)
+        
+        // Second Row.
+        // c2, (2000 to 10000, y = 7)
+        let c2 = Conveyor(name: "c2", index: 2, x1: 2_000, x2: 10_000, y: 7)
+        
+        
+        // Third Row.
+        // c3, (1000 to 6000, y = 4)
+        let c3 = Conveyor(name: "c3", index: 3, x1: 1_000, x2: 6_000, y: 4)
+        // c4, (9000 to 12000, y = 4)
+        let c4 = Conveyor(name: "c4", index: 4, x1: 9_000, x2: 12_000, y: 4)
+        
+        
+        // Fourth Row.
+        // c5, (5000 to 13000, y = 1)
+        let c5 = Conveyor(name: "c5", index: 5, x1: 3_000, x2: 11_000, y: 1)
+        
+        
+        return TestCase(conveyors: [c0, c1, c2, c3, c4, c5])
+    }
+    
     static var test_case_stairs: TestCase {
-        
-        // y = 9, good
-        // x1 = 11000, good
-        // x2 = 13000, good
-        let c0 = Conveyor(name: "c0", index: 0, x1: 1_000, x2: 3_000, y: 9)
-        let c2 = Conveyor(name: "c2", index: 1, x1: 2_000, x2: 8_000, y: 8)
-        let c3 = Conveyor(name: "c3", index: 2, x1: 5_000, x2: 9_000, y: 7)
-        let c5 = Conveyor(name: "c5", index: 3, x1: 8_000, x2: 12_000, y: 6)
-
-        //{c0, [1000 to 3000, y=9]}
-        // (No Hits)
-        
-        //{c2, [2000 to 8000, y=8]}
-        //There's a Hit Bag At 3000 for c2
-            //hit from conveyor: c0
-            //hit count is: 2000
-                                        
-        
-        //{c3, [7000 to 11000, y=7]}
-        //There's a Hit Bag At 8000 for c3
-        //    hit from conveyor: c2
-        //    hit count is: 7000
-                                        
-        //{c5, [10000 to 12000, y=6]}
-        //There's a Hit Bag At 11000 for c5
-        //    hit from conveyor: c3
-        //    hit count is: 10000
-        
-        return TestCase(conveyors: [c0, c2, c3, c5])
+        //test_case_stairs.png
+        //test_case_stairs_drops.png
+        let c0 = Conveyor(name: "c0", index: 0, x1: 1_000, x2: 4_000, y: 10)
+        let c1 = Conveyor(name: "c1", index: 1, x1: 2_000, x2: 8_000, y: 7)
+        let c2 = Conveyor(name: "c2", index: 2, x1: 5_000, x2: 9_000, y: 4)
+        let c3 = Conveyor(name: "c3", index: 3, x1: 8_000, x2: 12_000, y: 1)
+        return TestCase(conveyors: [c0, c1, c2, c3])
     }
     
     static var test_case_stairs_inverted: TestCase {
@@ -199,11 +205,11 @@ struct TestCase {
     
     static var test_case_2: TestCase {
         
-        let c0 = Conveyor(name: "c0", index: 0, x1: 5_000, x2: 7_000, y: 2)
-        let c1 = Conveyor(name: "c1", index: 1, x1: 2_000, x2: 8_000, y: 8)
-        let c2 = Conveyor(name: "c2", index: 2, x1: 7_000, x2: 11_000, y: 5)
-        let c3 = Conveyor(name: "c3", index: 3, x1: 9_000, x2: 11_000, y: 9)
-        let c4 = Conveyor(name: "c4", index: 4, x1: 0, x2: 4_000, y: 4)
+        let c0 = Conveyor(name: "1st", index: 0, x1: 5_000, x2: 7_000, y: 2)
+        let c1 = Conveyor(name: "2nd", index: 1, x1: 2_000, x2: 8_000, y: 8)
+        let c2 = Conveyor(name: "3rd", index: 2, x1: 7_000, x2: 11_000, y: 5)
+        let c3 = Conveyor(name: "4th", index: 3, x1: 9_000, x2: 11_000, y: 9)
+        let c4 = Conveyor(name: "5th", index: 4, x1: 0, x2: 4_000, y: 4)
         
         return TestCase(conveyors: [c0, c1, c2, c3, c4])
         

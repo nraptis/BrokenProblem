@@ -7,49 +7,74 @@
 
 import Foundation
 
-var left_collider: Conveyor?
-var right_collider: Conveyor?
-
-var left_set = Set<Conveyor>()
-var right_set = Set<Conveyor>()
-
-// @ Precondition: findColliders
-// @ Precondition: findParentsAndRoot
-func findLeftRightSets(conveyors: [Conveyor]) {
+func findRemainingMovement(conveyors: [Conveyor]) {
     
-    // We go from the bottom-up...
+    let DEBUG = false
+    
     let conveyors = conveyors.sorted { $0.y < $1.y }
-    for conveyor in conveyors {
-        conveyor.is_storing_left_and_right_sets = false
-    }
-    for conveyor in conveyors {
-        if conveyor.shouldStoreLeftAndRightSets() {
-            conveyor.populateLeftAndRightSets()
-        }
-    }
-}
-
-func findParentsAndRoot(conveyors: [Conveyor]) {
- 
-    for conveyor in conveyors {
-        conveyor.parents.removeAll(keepingCapacity: true)
-    }
     
     for conveyor in conveyors {
+        let movement_left_piece_1: Double
+        let movement_left_piece_2: Double
+        let movement_left_piece_3: Double
+        let movement_left_piece_4: Double
         if let left_collider = conveyor.left_collider {
-            left_collider.parents.insert(conveyor)
+            movement_left_piece_1 = Double(conveyor.x1 - left_collider.x1)
+            movement_left_piece_2 = Double(left_collider.x2 - conveyor.x1)
+            movement_left_piece_3 = left_collider.remaining_movement_left
+            movement_left_piece_4 = left_collider.remaining_movement_right
+        } else {
+            movement_left_piece_1 = 0.0
+            movement_left_piece_2 = 0.0
+            movement_left_piece_3 = 0.0
+            movement_left_piece_4 = 0.0
         }
+        
+        conveyor.remaining_movement_left = 0.0
+        conveyor.remaining_movement_left += movement_left_piece_1
+        conveyor.remaining_movement_left += movement_left_piece_2
+        conveyor.remaining_movement_left += movement_left_piece_3
+        conveyor.remaining_movement_left += movement_left_piece_4
+        conveyor.remaining_movement_left /= 2.0
+        
+        let movement_right_piece_1: Double
+        let movement_right_piece_2: Double
+        let movement_right_piece_3: Double
+        let movement_right_piece_4: Double
         if let right_collider = conveyor.right_collider {
-            right_collider.parents.insert(conveyor)
+            movement_right_piece_1 = Double(right_collider.x2 - conveyor.x2)
+            movement_right_piece_2 = Double(conveyor.x2 - right_collider.x1)
+            movement_right_piece_3 = right_collider.remaining_movement_left
+            movement_right_piece_4 = right_collider.remaining_movement_right
+        } else {
+            movement_right_piece_1 = 0.0
+            movement_right_piece_2 = 0.0
+            movement_right_piece_3 = 0.0
+            movement_right_piece_4 = 0.0
         }
+        
+        conveyor.remaining_movement_right = 0.0
+        conveyor.remaining_movement_right += movement_right_piece_1
+        conveyor.remaining_movement_right += movement_right_piece_2
+        conveyor.remaining_movement_right += movement_right_piece_3
+        conveyor.remaining_movement_right += movement_right_piece_4
+        conveyor.remaining_movement_right /= 2.0
+        
     }
     
-    for conveyor in conveyors {
-        if conveyor.parents.isEmpty {
-            conveyor.is_root = true
-        } else {
-            conveyor.is_root = false
+    if DEBUG {
+        print("</ Start With RemainingMovement>")
+        for conveyor in conveyors.reversed() {
+            print("$$$$ =>>>> $$$$$ ")
+            print(">>>> \(conveyor.name)")
+            print("remaining_movement_left = \(conveyor.remaining_movement_left)")
+            print("remaining_movement_right = \(conveyor.remaining_movement_right)")
+            print("$$$$ =>>>> $$$$$")
         }
+        
+        print("</ Done With RemainingMovement>")
+        
+        print("AAA")
     }
 }
 
@@ -129,6 +154,41 @@ func findColliders(conveyors: [Conveyor]) {
             }
             actionIndex += 1
         }
+    }
+}
+
+func registerDrops(conveyors: [Conveyor], drops: [Drop]) {
+    
+    let DEBUG = false
+    
+    
+    
+    for drop in drops {
+        switch drop {
+        case .empty:
+            break
+        case .conveyor(let span, let conveyor):
+            conveyor.dropSpans.append(span)
+        }
+    }
+    for conveyor in conveyors {
+        for span in conveyor.dropSpans {
+            //conveyor.drop_cost_left += conveyor.average_left(span: span)
+            //conveyor.drop_cost_right += conveyor.average_right(span: span)
+        }
+    }
+    
+    
+    if DEBUG {
+        print("</ Start With RegisterDrops>")
+        print(">>> Spans >>>")
+        for conveyor in conveyors {
+            print("Conveyor: \(conveyor.name), \(conveyor.dropSpans.count) dropSpans")
+            for span in conveyor.dropSpans {
+                print("\t\(span), cost_left \(conveyor.average_left(span: span)), cost_right \(conveyor.average_right(span: span))")
+            }
+        }
+        print("</ Done With RegisterDrops>")
     }
 }
 

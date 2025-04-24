@@ -35,11 +35,10 @@ func combine_duplicates(datums: [EdgeInfoDatum]) -> [EdgeInfoDatum] {
         counter[key] = leftover
 
         let mergedKey = MergeKey(distance: key.distance, divided: key.divided / 2)
-        let alreadyExisted = counter[mergedKey] != nil
         counter[mergedKey, default: 0] += pairs
 
         // Only reprocess mergedKey if it's newly created or could be merged again
-        if !alreadyExisted || counter[mergedKey]! >= 2 {
+        if !(counter[mergedKey] != nil) || counter[mergedKey]! >= 2 {
             keys.append(mergedKey)
         }
     }

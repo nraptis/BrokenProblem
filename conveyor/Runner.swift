@@ -16,15 +16,27 @@ struct Runner {
         //let MED1 = getMinExpectedHorizontalTravelDistance(TestCase.test_case_1)
         //print("MED1: \(MED1)")
         
+        //let MED2 = getMinExpectedHorizontalTravelDistance(TestCase.test_case_2)
+        //print("MED2: \(MED2)")
+        
+        
         //let STAIR = getMinExpectedHorizontalTravelDistance(TestCase.test_case_stairs)
         //print("STAIR: \(STAIR)")
+        
+        
+        let FIVEBANG = getMinExpectedHorizontalTravelDistance(TestCase.test_case_five_banger)
+        print("FIVEBANG: \(FIVEBANG)")
+        
+        
+        
+        
         
         //let STAIR_D = getMinExpectedHorizontalTravelDistance(TestCase.test_case_stairs_with_double)
         //print("STAIR_D: \(STAIR_D)")
         
         
-        let STAIR_INV = getMinExpectedHorizontalTravelDistance(TestCase.test_case_stairs_inverted)
-        print("STAIR_INV: \(STAIR_INV)")
+        //let STAIR_INV = getMinExpectedHorizontalTravelDistance(TestCase.test_case_stairs_inverted)
+        //print("STAIR_INV: \(STAIR_INV)")
         
         
         //CombineDuplicates_Test.test_all()
@@ -35,6 +47,7 @@ struct Runner {
         
         //let LARGE = getMinExpectedHorizontalTravelDistance(TestCase.test_case_large)
         //print("LARGE: \(LARGE)")
+        
         
         
         
