@@ -13,23 +13,19 @@ struct Runner {
         
         //Test_Case_Explorer.test(TestCase.test_case_4)
         
-        //let MED1 = getMinExpectedHorizontalTravelDistance(TestCase.test_case_1)
-        //print("MED1: \(MED1)")
+        let MED1 = getMinExpectedHorizontalTravelDistance(TestCase.test_case_1)
+        print("MED1: \(MED1)")
         
-        //let MED2 = getMinExpectedHorizontalTravelDistance(TestCase.test_case_2)
-        //print("MED2: \(MED2)")
+        let MED2 = getMinExpectedHorizontalTravelDistance(TestCase.test_case_2)
+        print("MED2: \(MED2)")
         
         
         //let STAIR = getMinExpectedHorizontalTravelDistance(TestCase.test_case_stairs)
         //print("STAIR: \(STAIR)")
         
         
-        let FIVEBANG = getMinExpectedHorizontalTravelDistance(TestCase.test_case_five_banger)
-        print("FIVEBANG: \(FIVEBANG)")
-        
-        
-        
-        
+        //let FIVEBANG = getMinExpectedHorizontalTravelDistance(TestCase.test_case_five_banger)
+        //print("FIVEBANG: \(FIVEBANG)")
         
         //let STAIR_D = getMinExpectedHorizontalTravelDistance(TestCase.test_case_stairs_with_double)
         //print("STAIR_D: \(STAIR_D)")

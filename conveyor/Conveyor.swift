@@ -22,18 +22,13 @@ class Conveyor: Hashable, CustomStringConvertible {
     
     var dropSpans = [Span]()
     
-    // This is from our selfs.
-    var fall_cost_left_normal = Double(0.0)
-    var fall_cost_right_normal = Double(0.0)
-    
-    var fall_cost_left_fixed_left = Double(0.0)
-    var fall_cost_right_fixed_right = Double(0.0)
-    
-    var local_cost_left_normal = Double(0.0)
-    var local_cost_right_normal = Double(0.0)
-    
     var fall_sum_left = Double(0.0)
     var fall_sum_right = Double(0.0)
+    
+    // This is from our selfs.
+    var fall_cost_random = Double(0.0)
+    var fall_cost_fixed_left = Double(0.0)
+    var fall_cost_fixed_right = Double(0.0)
     
     
     
@@ -47,6 +42,12 @@ class Conveyor: Hashable, CustomStringConvertible {
     // Uniform means that
     var cost_left_uniform: Double = INVALID
     var cost_right_uniform: Double = INVALID
+    
+    
+    // Uniform means that
+    var cost_left_memo: Double = INVALID
+    var cost_right_memo: Double = INVALID
+    
     
     var left_collider: Conveyor?
     var right_collider: Conveyor?

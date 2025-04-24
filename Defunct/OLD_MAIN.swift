@@ -7,22 +7,10 @@
 
 import Foundation
 
-/*
-func findAllFallCosts(conveyors: [Conveyor],
-                      locked_conveyor: Conveyor,
-                      locked_direction: Direction) {
-    for conveyor in conveyors {
-        _ = getFallCostRight(conveyor: conveyor, locked_conveyor: locked_conveyor, locked_direction: locked_direction)
-        _ = getFallCostLeft(conveyor: conveyor, locked_conveyor: locked_conveyor, locked_direction: locked_direction)
-    }
-}
-*/
-
-
-
 // @Precondition: conveyor is the conveyor from which we fall
 //                off of to-the-right, we do not include any
 //                travel costs for the conveyor itself.
+
 func getFallCostRight(x: Int,
                       conveyor: Conveyor,
                       collider: Conveyor,
@@ -32,8 +20,7 @@ func getFallCostRight(x: Int,
     let cost_rhs = getFallCostRight(conveyor: collider,
                                     locked_conveyor: locked_conveyor,
                                     locked_direction: locked_direction)
-    let result = cost_lhs + cost_rhs
-    return result
+    return cost_lhs + cost_rhs
 }
 
 func getFallCostLeft(x: Int,
@@ -45,37 +32,28 @@ func getFallCostLeft(x: Int,
     let cost_rhs = getFallCostLeft(conveyor: collider,
                                    locked_conveyor: locked_conveyor,
                                    locked_direction: locked_direction)
-    let result = cost_lhs + cost_rhs
-    return result
+    return cost_lhs + cost_rhs
 }
 
 func getFallCostRight(conveyor: Conveyor,
                       locked_conveyor: Conveyor,
                       locked_direction: Direction) -> Double {
     
-    if conveyor.cost_right_memo != Conveyor.INVALID {
-        return conveyor.cost_right_memo
-    }
-    
     if let right_collider = conveyor.right_collider {
         if right_collider == locked_conveyor {
             switch locked_direction {
             case .left:
-                let result = getFallCostLeft(x: conveyor.x2,
+                return getFallCostLeft(x: conveyor.x2,
                                        conveyor: conveyor,
                                        collider: right_collider,
                                        locked_conveyor: locked_conveyor,
                                        locked_direction: locked_direction)
-                conveyor.cost_right_memo = result
-                return result
             case .right:
-                let result = getFallCostRight(x: conveyor.x2,
+                return getFallCostRight(x: conveyor.x2,
                                         conveyor: conveyor,
                                         collider: right_collider,
                                         locked_conveyor: locked_conveyor,
                                         locked_direction: locked_direction)
-                conveyor.cost_right_memo = result
-                return result
             }
         } else {
             let left_cost = getFallCostLeft(x: conveyor.x2,
@@ -88,15 +66,11 @@ func getFallCostRight(conveyor: Conveyor,
                                               collider: right_collider,
                                               locked_conveyor: locked_conveyor,
                                               locked_direction: locked_direction)
-            let result = (left_cost + right_cost) / 2.0
-            conveyor.cost_right_memo = result
-            return result
+            return (left_cost + right_cost) / 2.0
         }
         
     } else {
-        let result = Double(0.0)
-        conveyor.cost_right_memo = result
-        return result
+        return 0.0
     }
 }
 
@@ -104,29 +78,21 @@ func getFallCostLeft(conveyor: Conveyor,
                       locked_conveyor: Conveyor,
                       locked_direction: Direction) -> Double {
     
-    if conveyor.cost_left_memo != Conveyor.INVALID {
-        return conveyor.cost_left_memo
-    }
-    
     if let left_collider = conveyor.left_collider {
         if left_collider == locked_conveyor {
             switch locked_direction {
             case .left:
-                let result = getFallCostLeft(x: conveyor.x1,
-                                             conveyor: conveyor,
-                                             collider: left_collider,
-                                             locked_conveyor: locked_conveyor,
-                                             locked_direction: locked_direction)
-                conveyor.cost_left_memo = result
-                return result
+                return getFallCostLeft(x: conveyor.x1,
+                                       conveyor: conveyor,
+                                       collider: left_collider,
+                                       locked_conveyor: locked_conveyor,
+                                       locked_direction: locked_direction)
             case .right:
-                let result = getFallCostRight(x: conveyor.x1,
+                return getFallCostRight(x: conveyor.x1,
                                         conveyor: conveyor,
                                         collider: left_collider,
                                         locked_conveyor: locked_conveyor,
                                         locked_direction: locked_direction)
-                conveyor.cost_left_memo = result
-                return result
             }
         } else {
             let left_cost = getFallCostLeft(x: conveyor.x1,
@@ -139,14 +105,10 @@ func getFallCostLeft(conveyor: Conveyor,
                                               collider: left_collider,
                                               locked_conveyor: locked_conveyor,
                                               locked_direction: locked_direction)
-            let result = (left_cost + right_cost) / 2.0
-            conveyor.cost_left_memo = result
-            return result
+            return (left_cost + right_cost) / 2.0
         }
     } else {
-        let result = Double(0.0)
-        conveyor.cost_left_memo = result
-        return result
+        return 0.0
     }
 }
 
@@ -184,7 +146,6 @@ func geUniformTravelDistance(conveyors: [Conveyor],
     
     return (result / MULTIPLIER_D)
 }
-
 
 func getMinExpectedHorizontalTravelDistance(conveyors: [Conveyor],
                                             drops: [Drop],
@@ -269,34 +230,40 @@ func getMinExpectedHorizontalTravelDistance(_ conveyors: [Conveyor]) -> Float {
     
     print("We should turn it off like this: \(veryBestOne)")
     
-    /*
-    findAllFallCosts(conveyors: conveyors,
-                     locked_conveyor: veryBestOne.conveyor,
-                     locked_direction: veryBestOne.direction)
-    */
+    let uniform = geUniformTravelDistance(conveyors: conveyors, drops: drops)
+    var result = uniform
+    
+    
+    let mock = getMinExpectedHorizontalTravelDistance(conveyors: conveyors,
+                                                      drops: drops,
+                                                      locked_conveyor: Conveyor(name: "mock",
+                                                                                index: -1,
+                                                                                x1: -1000,
+                                                                                x2: -1000,
+                                                                                y: -1000),
+                                                      locked_direction: .left)
+
+    print("uniform = \(uniform)")
+    print("mock = \(mock)")
+    
     
     for conveyor in conveyors {
-        print("Costs, Fer \(conveyor)")
-        if conveyor.cost_left_memo != Conveyor.INVALID {
-            print("\tCOST_LEFT = \(conveyor.cost_left_memo)")
-        } else {
-            print("\tCOST_LEFT = INVALID")
+        print(conveyor)
+        //print(conveyor.edge)
+        
+        for span in conveyor.dropSpans {
+            print("Drop Span: \(span)")
+            let average_left = conveyor.average_left(span: span)
+            let average_right = conveyor.average_right(span: span)
+            print("average_left = \(average_left)")
+            print("average_right = \(average_right)")
         }
-        if conveyor.cost_right_memo != Conveyor.INVALID {
-            print("\tCOST_RIGHT = \(conveyor.cost_right_memo)")
-        } else {
-            print("\tCOST_RIGHT = INVALID")
-        }
+        
     }
     
     
-
-    let RESULT_D = getMinExpectedHorizontalTravelDistance(conveyors: conveyors,
-                                                          drops: drops,
-                                                          locked_conveyor: veryBestOne.conveyor,
-                                                          locked_direction: veryBestOne.direction)
     
-    return Float(RESULT_D)
+    return Float(result)
     
 }
 
