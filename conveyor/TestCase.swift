@@ -7,6 +7,20 @@
 
 import Foundation
 
+
+func getMinExpectedHorizontalTravelDistance(_ testCase: TestCase) -> Float {
+    
+    let sol1 = getMinExpectedHorizontalTravelDistance(conveyors: Conveyor.clone(conveyors: testCase.conveyors))
+    let sol2 = getMinExpectedHorizontalTravelDistance_BruteForce(conveyors: Conveyor.clone(conveyors: testCase.conveyors))
+    
+    let delta = fabs(sol1 - sol2)
+    if delta < 0.01 {
+        print("FAILED!!! This Test Failed!!!")
+    }
+    
+    return Float(sol2)
+}
+
 struct TestCase {
     let conveyors: [Conveyor]
     

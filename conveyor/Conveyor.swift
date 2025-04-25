@@ -7,15 +7,154 @@
 
 import Foundation
 
-class Conveyor: Hashable, CustomStringConvertible {
+class Conveyor: CustomStringConvertible {
     
-    static let INVALID = Double(-100_000_000.0)
+    func full_cost() -> Double {
+        
+        var result_left = Double(0.0)
+        var result_right = Double(0.0)
+        
+        for span in dropSpans {
+            let cost_left = self.average_left(span: span)
+            let cost_right = self.average_right(span: span)
+            result_left += cost_left
+            result_right += cost_right
+        }
+        
+        for fall in falls {
+            let cost_left = self.fall_value_left(fall: fall)
+            let cost_right = self.fall_value_right(fall: fall)
+            result_left += cost_left
+            result_right += cost_right
+        }
+        
+        
+        let portion_left = (result_left)
+        let portion_right = (result_right)
+        
+        let additional_left: Double
+        if let left_collider = left_collider {
+            let fall_left = portion_left
+            let fall = Fall(x: x1, amount: fall_left)
+            additional_left = left_collider.full_cost(fall: fall)
+        } else {
+            additional_left = 0.0
+        }
+        
+        let additional_right: Double
+        if let right_collider = right_collider {
+            let fall_right = portion_right
+            let fall = Fall(x: x1, amount: fall_right)
+            additional_right = right_collider.full_cost(fall: fall)
+        } else {
+            additional_right = 0.0
+        }
+        
+        return portion_left + portion_right + additional_left + additional_right
+    }
     
-    let name: String
+    func full_cost(fall: Fall) -> Double {
+        // Half goes left, half goes right.
+        
+        let move_left = fall.x - x1
+        let move_right = x2 - fall.x
+        
+        let cost_left = fall.amount + Double(move_left)
+        let cost_right = fall.amount + Double(move_right)
+        
+        var result_left = cost_left
+        if let left_collider = left_collider {
+            let fall_left = Fall(x: x1, amount: 0.0)
+            let extra = left_collider.full_cost(fall: fall_left)
+            result_left += extra
+        }
+        
+        var result_right = cost_right
+        if let right_collider = right_collider {
+            let fall_right = Fall(x: x2, amount: 0.0)
+            let extra = right_collider.full_cost(fall: fall_right)
+            result_right += extra
+        }
+        
+        let result = (result_left + result_right) / 2.0
+        print("full cost is \(result) from fall \(fall.x) | \(fall.amount)")
+        return result
+    }
+    
+    func full_cost_locked_left() -> Double {
+        
+        var result = Double(0.0)
+        for span in dropSpans {
+            let cost = self.average_left(span: span)
+            result += cost
+        }
+        for fall in falls {
+            let cost = self.fall_value_left(fall: fall)
+            result += cost
+        }
+        if let left_collider = left_collider {
+            let fall = Fall(x: x1, amount: 0.0)
+            let cost = left_collider.full_cost(fall: fall)
+            result += cost
+        }
+        return result
+    }
+    
+    func full_cost_locked_right() -> Double {
+        var result = Double(0.0)
+        for span in dropSpans {
+            let cost = self.average_right(span: span)
+            result += cost
+        }
+        for fall in falls {
+            let cost = self.fall_value_right(fall: fall)
+            result += cost
+        }
+        if let right_collider = right_collider {
+            let fall = Fall(x: x2, amount: 0.0)
+            let cost = right_collider.full_cost(fall: fall)
+            result += cost
+        }
+        return result
+    }
+    
+    
+    
+    static func clone(conveyors: [Conveyor]) -> [Conveyor] {
+        var result = [Conveyor]()
+        for (index, conveyor) in conveyors.enumerated() {
+            let clone = Conveyor(name: conveyor.name,
+                                 index: index,
+                                 x1: conveyor.x1,
+                                 x2: conveyor.x2,
+                                 y: conveyor.y)
+            result.append(clone)
+        }
+        return result
+    }
+    
+    var description: String {
+        
+        if let left_collider = left_collider {
+            if let right_collider = right_collider {
+                return "{\(name), [\(x1) to \(x2), y=\(y)] left: \(left_collider.name) right: \(right_collider.name)}"
+            } else {
+                return "{\(name), [\(x1) to \(x2), y=\(y)] left: \(left_collider.name)}"
+            }
+        } else if let right_collider = right_collider {
+            return "{\(name), [\(x1) to \(x2), y=\(y)] right: \(right_collider.name)}"
+        } else {
+            return "{\(name), [\(x1) to \(x2), y=\(y)]}"
+        }
+        
+        
+    }
+    
     let index: Int
     
     var heapIndex = 0
     
+    let name: String
     let y: Int
     let x1: Int
     let x2: Int
@@ -30,61 +169,76 @@ class Conveyor: Hashable, CustomStringConvertible {
     var fall_cost_fixed_left = Double(0.0)
     var fall_cost_fixed_right = Double(0.0)
     
-    
-    
     // This is from parent conveyors that fall to us.
     var falls = [Fall]()
-    
     
     var remaining_movement_left = Double(0.0)
     var remaining_movement_right = Double(0.0)
     
     // Uniform means that
-    var cost_left_uniform: Double = INVALID
-    var cost_right_uniform: Double = INVALID
-    
-    
-    // Uniform means that
     var cost_left_memo: Double = INVALID
     var cost_right_memo: Double = INVALID
-    
     
     var left_collider: Conveyor?
     var right_collider: Conveyor?
     
-    
     init(name: String, index: Int, x1: Int, x2: Int, y: Int) {
         let _x1 = min(x1, x2)
         let _x2 = max(x1, x2)
-        self.name = name;self.index = index;self.y = y;self.x1 = _x1; self.x2 = _x2
+        self.name = name
+        self.index = index;self.y = y;self.x1 = _x1; self.x2 = _x2
     }
     
-    func hash(into hasher: inout Hasher) {
-        hasher.combine(index)
-    }
-    
-    static func ==(lhs: Conveyor, rhs: Conveyor) -> Bool {
-        lhs.index == rhs.index
-    }
-    
-    // A package can be considered to occupy a single point on the plane. If a package lands strictly
-    // within conveyor belt i (excluding its endpoints), then it will be transported to its left or right end
-    func between(x: Int) -> Bool {
-        if x > x1 && x < x2 {
-            return true
-        } else {
-            return false
+    func fall_value_right(fall: Fall) -> Double {
+        
+        var exists = false
+        for _fall in falls {
+            if _fall === fall {
+                exists = true
+            }
         }
+        if !exists {
+            fatalError("This should be called on conveyor who owns fall.")
+        }
+        
+        let distance = self.x2 - fall.x
+        let amount = fall.amount
+        let result = amount + Double(distance)
+        return result
     }
     
-    func below(y: Int) -> Bool {
-        if y > self.y {
-            return true
-        } else {
-            return false
+    func fall_value_left(fall: Fall) -> Double {
+        
+        var exists = false
+        for _fall in falls {
+            if _fall === fall {
+                exists = true
+            }
         }
+        if !exists {
+            fatalError("This should be called on conveyor who owns fall.")
+        }
+        
+        let distance = fall.x - self.x1
+        let amount = fall.amount
+        let result = amount + Double(distance)
+        return result
     }
-
+    
+    func fall_value_right_CASCADE(fall: Fall) -> Double {
+        let distance = self.x2 - fall.x
+        let amount = fall.amount
+        let result = amount + Double(distance)
+        return result
+    }
+    
+    func fall_value_left_CASCADE(fall: Fall) -> Double {
+        let distance = fall.x - self.x1
+        let amount = fall.amount
+        let result = amount + Double(distance)
+        return result
+    }
+    
     func average_all_smart(x1: Int, x2: Int, direction: Direction) -> Double {
         var right_x = max(x1, x2)
         right_x = max(right_x, self.x1)
@@ -114,121 +268,31 @@ class Conveyor: Hashable, CustomStringConvertible {
         }
     }
     
-    var description: String {
-        
-        if let left_collider = left_collider {
-            if let right_collider = right_collider {
-                return "{\(name), [\(x1) to \(x2), y=\(y)] left: \(left_collider.name) right: \(right_collider.name)}"
-            } else {
-                return "{\(name), [\(x1) to \(x2), y=\(y)] left: \(left_collider.name)}"
-            }
-        } else if let right_collider = right_collider {
-            return "{\(name), [\(x1) to \(x2), y=\(y)] right: \(right_collider.name)}"
-        } else {
-            return "{\(name), [\(x1) to \(x2), y=\(y)]}"
-        }
-        
-        
-    }
-    
     func average_left(span: Span) -> Double {
-        switch span {
-        case .point:
-            // This occupies 0% of the whole thing on a continuous scale.
-            return 0.0
-        case .interval(let interval):
-            let start = interval.start
-            let end = interval.end
-            let range_start: Int
-            let sample_start: Int
-            switch start {
-            case .closed(let number):
-                range_start = number
-                sample_start = number
-            case .open(let number):
-                range_start = number
-                sample_start = number
-            }
-            let range_end: Int
-            let sample_end: Int
-            switch end {
-            case .closed(let number):
-                range_end = number
-                sample_end = number
-            case .open(let number):
-                range_end = number
-                sample_end = number
-            }
-            let count = (range_end - range_start)
-            if count <= 0 {
-                return 0.0
-            }
-            let sample = average_all_smart(x1: sample_start, x2: sample_end, direction: .left)
+        
+        if span.is_range {
+            let sample = average_all_smart(x1: span.x1, x2: span.x2, direction: .left)
             return sample
+        } else {
+            return 0.0
         }
     }
     
     func average_right(span: Span) -> Double {
-        switch span {
-        case .point:
-            // This occupies 0% of the whole thing on a continuous scale.
-            return 0.0
-        case .interval(let interval):
-            let start = interval.start
-            let end = interval.end
-            let range_start: Int
-            let sample_start: Int
-            switch start {
-            case .closed(let number):
-                range_start = number
-                sample_start = number
-            case .open(let number):
-                range_start = number
-                sample_start = number
-            }
-            let range_end: Int
-            let sample_end: Int
-            switch end {
-            case .closed(let number):
-                range_end = number
-                sample_end = number
-            case .open(let number):
-                range_end = number
-                sample_end = number
-            }
-            let count = (range_end - range_start)
-            if count <= 0 {
-                return 0.0
-            }
-            let sample = average_all_smart(x1: sample_start, x2: sample_end, direction: .right)
+        if span.is_range {
+            let sample = average_all_smart(x1: span.x1, x2: span.x2, direction: .right)
             return sample
+        } else {
+            return 0.0
         }
     }
     
     static func count(span: Span) -> Int {
-        switch span {
-        case .point:
-            // This occupies 0% of the whole thing on a continuous scale.
+        if span.is_range {
+            let result = (span.x2 - span.x1)
+            return result
+        } else {
             return 0
-        case .interval(let interval):
-            let start = interval.start
-            let end = interval.end
-            let range_start: Int
-            switch start {
-            case .closed(let number):
-                range_start = number
-            case .open(let number):
-                range_start = number
-            }
-            let range_end: Int
-            switch end {
-            case .closed(let number):
-                range_end = number
-            case .open(let number):
-                range_end = number
-            }
-            let count = (range_end - range_start)
-            return count
         }
     }
     
@@ -241,3 +305,4 @@ class Conveyor: Hashable, CustomStringConvertible {
     }
     
 }
+

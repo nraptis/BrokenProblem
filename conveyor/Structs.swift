@@ -7,7 +7,24 @@
 
 import Foundation
 
-enum Direction: UInt8, CaseIterable {
+let INVALID = Double(-100_000_000.0)
+
+struct VeryBestOne {
+    let conveyor: Conveyor
+    let direction: Direction
+}
+
+class Fall {
+    let x: Int
+    let amount: Double
+    
+    init(x: Int, amount: Double) {
+        self.x = x
+        self.amount = amount
+    }
+}
+
+enum Direction {
     case left
     case right
 }
@@ -22,96 +39,24 @@ struct DropSweepAction {
     let type: ActionType
 }
 
-typealias CollideSweepAction = DropSweepAction
-
-enum Drop: Equatable, CustomStringConvertible {
-    case empty(Span)
-    case conveyor(Span, Conveyor)
-    static func == (lhs: Drop, rhs: Drop) -> Bool {
-        switch (lhs, rhs) {
-        case (.empty(let ls), .empty(let rs)):
-            return ls == rs
-        case (.conveyor(let ls, let lc), .conveyor(let rs, let rc)):
-            if ls != rs { return false }
-            if lc != rc { return false }
-            return true
-        default:
-            return false
-        }
-    }
-    
-    var description: String {
-        switch self {
-        case .empty(let span):
-            return "DropEmpty{ \(span) }"
-        case .conveyor(let span, let conveyor):
-            return "DropConveyor{ \(span) | \(conveyor.name) }"
-        }
+class Drop {
+    let conveyor: Conveyor
+    let span: Span
+    init(conveyor: Conveyor, span: Span) {
+        self.conveyor = conveyor
+        self.span = span
     }
 }
 
-enum Boundary: Equatable {
-    case closed(Int)
-    case open(Int)
-    static func == (lhs: Boundary, rhs: Boundary) -> Bool {
-        switch (lhs, rhs) {
-        case (.closed(let l), .closed(let r)):
-            return l == r
-        case (.open(let l), .open(let r)):
-            return l == r
-        default:
-            return false
-        }
+class Span {
+    let x1: Int
+    let x2: Int
+    let is_range: Bool
+    init(x1: Int, x2: Int, is_range: Bool) {
+        self.x1 = x1
+        self.x2 = x2
+        self.is_range = is_range
     }
 }
 
-struct Interval: Equatable, CustomStringConvertible {
-    let start: Boundary
-    let end: Boundary
-    static func == (lhs: Interval, rhs: Interval) -> Bool {
-        if lhs.start != rhs.start { return false }
-        if lhs.end != rhs.end { return false }
-        return true
-    }
-    var description: String {
-        switch start {
-        case .closed(let start_val):
-            switch end {
-            case .closed(let end_val):
-                return "[\(start_val), \(end_val)]"
-            case .open(let end_val):
-                return "[\(start_val), \(end_val))"
-            }
-        case .open(let start_val):
-            switch end {
-            case .closed(let end_val):
-                return "(\(start_val), \(end_val)]"
-            case .open(let end_val):
-                return "(\(start_val), \(end_val))"
-            }
-        }
-    }
-}
 
-enum Span: Equatable, CustomStringConvertible {
-    case point(Int)
-    case interval(Interval)
-    static func == (lhs: Span, rhs: Span) -> Bool {
-        switch (lhs, rhs) {
-        case (.point(let lp), .point(let rp)):
-            return lp == rp
-        case (.interval(let li), .interval(let ri)):
-            return li == ri
-        default:
-            return false
-        }
-    }
-    var description: String {
-        switch self {
-        case .point(let p):
-            return "[\(p)]"
-        case .interval(let i):
-            return "\(i)"
-        }
-    }
-}

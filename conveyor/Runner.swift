@@ -13,11 +13,69 @@ struct Runner {
         
         //Test_Case_Explorer.test(TestCase.test_case_4)
         
+        
+        //BruteTests.test_all()
+        
+        //test_discovered_failure_case_c
+        //test_discovered_failure_case_d
+        
+        
+        //BruteTests.test_discovered_failure_case_e()
+        
+        //BruteTests.test_discovered_failure_case_v()
+        
+        //print("o")
+        
+        BruteTests.test_discovered_failure_case_w()
+        
+        
+        //BruteTests.test_1000_3_conveyor()
+        //BruteTests.test_1000_2_conveyor()
+        
+        
+        //BruteTests.test_discovered_failure_case_t()
+        //BruteTests.test_all()
+        
+        
+        
+        
+        print("ooo")
+        print("oo")
+        print("o")
+        
+        
+        //BruteTests.test_discovered_failure_case_k()
+        
+        
+        
+        
+        //BruteTests.test_1000_three_conveyor()
+        //BruteTests.test_100_four_conveyor()
+        
+        
+        //BruteTests.execute(name: "test_case_1", conveyors: TestCase.test_case_1.conveyors)
+        //BruteTests.execute(name: "test_case_2", conveyors: TestCase.test_case_2.conveyors)
+        
+        //BruteTests.test_discovered_failure_case_b()
+        //BruteTests.test_discovered_failure_case_a()
+        
+        
+        //BruteTests.test_10000_twenty_conveyor()
+        
+        //BruteTests.test_100_two_conveyor()
+        //BruteTests.test_100_three_conveyor()
+        //BruteTests.test_100_four_conveyor()
+        //BruteTests.test_100_twenty_conveyor()
+        
+        
+        
+        /*
         let MED1 = getMinExpectedHorizontalTravelDistance(TestCase.test_case_1)
         print("MED1: \(MED1)")
         
         let MED2 = getMinExpectedHorizontalTravelDistance(TestCase.test_case_2)
         print("MED2: \(MED2)")
+        */
         
         
         //let STAIR = getMinExpectedHorizontalTravelDistance(TestCase.test_case_stairs)
