@@ -17,14 +17,6 @@ struct ContentView: View {
         }
         .onAppear {
             Runner.run()
-            
-            /*
-            StreakTest.run_sum()
-            StreakTest.run_average()
-            StreakTest.run_sum_2()
-            StreakTest.run_average_2()
-            */
-            
         }
     }
 }

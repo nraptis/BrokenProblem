@@ -728,17 +728,13 @@ struct BruteTests {
                             overlaps = true
                             break
                         }
-                        
                     }
                 }
-                
                 if overlaps == false {
                     let c = Conveyor(index: conveyorIndex, x1: x1, x2: x2, y: y)
                     result.append(c)
                     conveyorIndex += 1
                 }
-                
-                
             }
             
             tryIndex += 1

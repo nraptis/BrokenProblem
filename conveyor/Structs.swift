@@ -7,7 +7,7 @@
 
 import Foundation
 
-let INVALID = Double(-100_000_000.0)
+let INVALID = Double(-1.0)
 
 struct VeryBestOne {
     let conveyor: Conveyor
@@ -59,4 +59,3 @@ struct DropBlackHole {
         self.mass = mass
     }
 }
-

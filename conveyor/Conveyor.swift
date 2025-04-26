@@ -93,15 +93,23 @@ class Conveyor {
         return Double(sum) / Double(count)
     }
     
-    func average_left(span: Span) -> Double { integrate_left(x1: span.x1, x2: span.x2) }
-    func average_right(span: Span) -> Double { integrate_right(x1: span.x1, x2: span.x2) }
+    func average_left(span: Span) -> Double {
+        integrate_left(x1: span.x1, x2: span.x2)
+    }
     
-    static func center(x1: Int, x2: Int) -> Double { Double(x1 + x2) / 2.0 }
+    func average_right(span: Span) -> Double {
+        integrate_right(x1: span.x1, x2: span.x2)
+    }
     
-    static func center(span: Span) -> Double { center(x1: span.x1, x2: span.x2) }
+    static func center(x1: Int, x2: Int) -> Double {
+        Double(x1 + x2) / 2.0
+    }
+    
+    static func center(span: Span) -> Double {
+        center(x1: span.x1, x2: span.x2)
+    }
     
     static func mass(span: Span) -> Double {
-        
         let result = Conveyor.integrate_left_zero(x1: span.x1, x2: span.x2)
         return result
     }

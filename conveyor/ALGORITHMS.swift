@@ -135,9 +135,7 @@ func getFallCostLeft(conveyor: Conveyor,
 }
 
 func findRemainingMovement(conveyors: [Conveyor]) {
-    
     let conveyors = conveyors.sorted { $0.y < $1.y }
-    
     for conveyor in conveyors {
         let movement_left_piece_1: Double
         let movement_left_piece_2: Double
@@ -218,4 +216,3 @@ func findTheVeryBestOne(conveyors: [Conveyor]) -> VeryBestOne {
     let result = VeryBestOne(conveyor: result_conveyor, direction: result_direction)
     return result
 }
-
