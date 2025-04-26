@@ -9,116 +9,32 @@ import Foundation
 
 class Conveyor: CustomStringConvertible {
     
-    func full_cost() -> Double {
+    static func children(conveyor: Conveyor) -> [Conveyor] {
+        var exists = Set<Int>()
+        var result = [Conveyor]()
+        var stack = [Conveyor]()
         
-        var result_left = Double(0.0)
-        var result_right = Double(0.0)
+        exists.insert(conveyor.index) // Mark starting node visited
+        stack.append(conveyor)
         
-        for span in dropSpans {
-            let cost_left = self.average_left(span: span)
-            let cost_right = self.average_right(span: span)
-            result_left += cost_left
-            result_right += cost_right
-        }
-        
-        for fall in falls {
-            let cost_left = self.fall_value_left(fall: fall)
-            let cost_right = self.fall_value_right(fall: fall)
-            result_left += cost_left
-            result_right += cost_right
-        }
-        
-        
-        let portion_left = (result_left)
-        let portion_right = (result_right)
-        
-        let additional_left: Double
-        if let left_collider = left_collider {
-            let fall_left = portion_left
-            let fall = Fall(x: x1, amount: fall_left)
-            additional_left = left_collider.full_cost(fall: fall)
-        } else {
-            additional_left = 0.0
-        }
-        
-        let additional_right: Double
-        if let right_collider = right_collider {
-            let fall_right = portion_right
-            let fall = Fall(x: x1, amount: fall_right)
-            additional_right = right_collider.full_cost(fall: fall)
-        } else {
-            additional_right = 0.0
-        }
-        
-        return portion_left + portion_right + additional_left + additional_right
-    }
-    
-    func full_cost(fall: Fall) -> Double {
-        // Half goes left, half goes right.
-        
-        let move_left = fall.x - x1
-        let move_right = x2 - fall.x
-        
-        let cost_left = fall.amount + Double(move_left)
-        let cost_right = fall.amount + Double(move_right)
-        
-        var result_left = cost_left
-        if let left_collider = left_collider {
-            let fall_left = Fall(x: x1, amount: 0.0)
-            let extra = left_collider.full_cost(fall: fall_left)
-            result_left += extra
-        }
-        
-        var result_right = cost_right
-        if let right_collider = right_collider {
-            let fall_right = Fall(x: x2, amount: 0.0)
-            let extra = right_collider.full_cost(fall: fall_right)
-            result_right += extra
-        }
-        
-        let result = (result_left + result_right) / 2.0
-        print("full cost is \(result) from fall \(fall.x) | \(fall.amount)")
-        return result
-    }
-    
-    func full_cost_locked_left() -> Double {
-        
-        var result = Double(0.0)
-        for span in dropSpans {
-            let cost = self.average_left(span: span)
-            result += cost
-        }
-        for fall in falls {
-            let cost = self.fall_value_left(fall: fall)
-            result += cost
-        }
-        if let left_collider = left_collider {
-            let fall = Fall(x: x1, amount: 0.0)
-            let cost = left_collider.full_cost(fall: fall)
-            result += cost
+        while stack.count > 0 {
+            guard let top = stack.popLast() else { break }
+            
+            if top.index != conveyor.index {
+                result.append(top)
+            }
+            
+            if let left_collider = top.left_collider, !exists.contains(left_collider.index) {
+                exists.insert(left_collider.index)
+                stack.append(left_collider)
+            }
+            if let right_collider = top.right_collider, !exists.contains(right_collider.index) {
+                exists.insert(right_collider.index)
+                stack.append(right_collider)
+            }
         }
         return result
     }
-    
-    func full_cost_locked_right() -> Double {
-        var result = Double(0.0)
-        for span in dropSpans {
-            let cost = self.average_right(span: span)
-            result += cost
-        }
-        for fall in falls {
-            let cost = self.fall_value_right(fall: fall)
-            result += cost
-        }
-        if let right_collider = right_collider {
-            let fall = Fall(x: x2, amount: 0.0)
-            let cost = right_collider.full_cost(fall: fall)
-            result += cost
-        }
-        return result
-    }
-    
-    
     
     static func clone(conveyors: [Conveyor]) -> [Conveyor] {
         var result = [Conveyor]()
@@ -134,7 +50,6 @@ class Conveyor: CustomStringConvertible {
     }
     
     var description: String {
-        
         if let left_collider = left_collider {
             if let right_collider = right_collider {
                 return "{\(name), [\(x1) to \(x2), y=\(y)] left: \(left_collider.name) right: \(right_collider.name)}"
@@ -159,18 +74,17 @@ class Conveyor: CustomStringConvertible {
     let x1: Int
     let x2: Int
     
-    var dropSpans = [Span]()
+    var drop_spans = [Span]()
     
-    var fall_sum_left = Double(0.0)
-    var fall_sum_right = Double(0.0)
+    var drop_black_holes_original = [DropBlackHole]()
+    var drop_black_holes_modified = [DropBlackHole]()
     
-    // This is from our selfs.
-    var fall_cost_random = Double(0.0)
-    var fall_cost_fixed_left = Double(0.0)
-    var fall_cost_fixed_right = Double(0.0)
+    var black_holes_random = [BlackHole]()
+    var black_holes_fixed_left = [BlackHole]()
+    var black_holes_fixed_right = [BlackHole]()
     
-    // This is from parent conveyors that fall to us.
-    var falls = [Fall]()
+    var ingest_black_holes = [BlackHole]()
+    
     
     var remaining_movement_left = Double(0.0)
     var remaining_movement_right = Double(0.0)
@@ -182,6 +96,8 @@ class Conveyor: CustomStringConvertible {
     var left_collider: Conveyor?
     var right_collider: Conveyor?
     
+    var parents = Set<Int>()
+    
     init(name: String, index: Int, x1: Int, x2: Int, y: Int) {
         let _x1 = min(x1, x2)
         let _x2 = max(x1, x2)
@@ -189,120 +105,317 @@ class Conveyor: CustomStringConvertible {
         self.index = index;self.y = y;self.x1 = _x1; self.x2 = _x2
     }
     
-    func fall_value_right(fall: Fall) -> Double {
-        
-        var exists = false
-        for _fall in falls {
-            if _fall === fall {
-                exists = true
-            }
-        }
-        if !exists {
-            fatalError("This should be called on conveyor who owns fall.")
-        }
-        
-        let distance = self.x2 - fall.x
-        let amount = fall.amount
-        let result = amount + Double(distance)
-        return result
+    /*
+     func fall_value_right(fall: Fall) -> Double {
+     
+     let distance = self.x2 - fall.x
+     let amount = fall.amount
+     let result = amount + Double(distance)
+     return result
+     }
+     
+     func fall_value_left(fall: Fall) -> Double {
+     
+     let distance = fall.x - self.x1
+     let amount = fall.amount
+     let result = amount + Double(distance)
+     return result
+     }
+     */
+    
+    private static func integrate_left(x1: Int, x2: Int) -> Double {
+        let right_x = max(x1, x2)
+        let left_x = min(x1, x2)
+        let count = right_x - left_x + 1
+        if count <= 0 { return 0.0 }
+        let first = left_x - x1
+        let last = right_x - x1
+        let sum = (last * (last + 1)) / 2 - ((first - 1) * first) / 2
+        return Double(sum) / Double(count)
     }
     
-    func fall_value_left(fall: Fall) -> Double {
-        
-        var exists = false
-        for _fall in falls {
-            if _fall === fall {
-                exists = true
-            }
-        }
-        if !exists {
-            fatalError("This should be called on conveyor who owns fall.")
-        }
-        
-        let distance = fall.x - self.x1
-        let amount = fall.amount
-        let result = amount + Double(distance)
-        return result
-    }
-    
-    func fall_value_right_CASCADE(fall: Fall) -> Double {
-        let distance = self.x2 - fall.x
-        let amount = fall.amount
-        let result = amount + Double(distance)
-        return result
-    }
-    
-    func fall_value_left_CASCADE(fall: Fall) -> Double {
-        let distance = fall.x - self.x1
-        let amount = fall.amount
-        let result = amount + Double(distance)
-        return result
-    }
-    
-    func average_all_smart(x1: Int, x2: Int, direction: Direction) -> Double {
+    private func integrate_left(x1: Int, x2: Int) -> Double {
         var right_x = max(x1, x2)
         right_x = max(right_x, self.x1)
         right_x = min(right_x, self.x2)
-        
         var left_x = min(x1, x2)
         left_x = min(left_x, self.x2)
         left_x = max(left_x, self.x1)
-        
         let count = right_x - left_x + 1
         if count <= 0 { return 0.0 }
-        
-        switch direction {
-        case .left:
-            // summing (x - x1) from x in [left_x...right_x]
-            let first = left_x - self.x1
-            let last = right_x - self.x1
-            let sum = (last * (last + 1)) / 2 - ((first - 1) * first) / 2
-            return Double(sum) / Double(count)
-            
-        case .right:
-            // summing (x2 - x) from x in [left_x...right_x]
-            let first = self.x2 - right_x
-            let last = self.x2 - left_x
-            let sum = (last * (last + 1)) / 2 - ((first - 1) * first) / 2
-            return Double(sum) / Double(count)
-        }
+        let first = left_x - self.x1
+        let last = right_x - self.x1
+        let sum = (last * (last + 1)) / 2 - ((first - 1) * first) / 2
+        return Double(sum) / Double(count)
     }
     
-    func average_left(span: Span) -> Double {
-        
-        if span.is_range {
-            let sample = average_all_smart(x1: span.x1, x2: span.x2, direction: .left)
-            return sample
-        } else {
-            return 0.0
-        }
+    private func integrate_right(x1: Int, x2: Int) -> Double {
+        var right_x = max(x1, x2)
+        right_x = max(right_x, self.x1)
+        right_x = min(right_x, self.x2)
+        var left_x = min(x1, x2)
+        left_x = min(left_x, self.x2)
+        left_x = max(left_x, self.x1)
+        let count = right_x - left_x + 1
+        if count <= 0 { return 0.0 }
+        let first = self.x2 - right_x
+        let last = self.x2 - left_x
+        let sum = (last * (last + 1)) / 2 - ((first - 1) * first) / 2
+        return Double(sum) / Double(count)
     }
     
-    func average_right(span: Span) -> Double {
-        if span.is_range {
-            let sample = average_all_smart(x1: span.x1, x2: span.x2, direction: .right)
-            return sample
-        } else {
-            return 0.0
-        }
+    private func sumup(n: Int) -> Int {
+        (n * (n + 1)) >> 1
+    }
+    
+    func average_left(span: Span) -> Double { integrate_left(x1: span.x1, x2: span.x2) }
+    func average_right(span: Span) -> Double { integrate_right(x1: span.x1, x2: span.x2) }
+    
+    static func center(x1: Int, x2: Int) -> Double { Double(x1 + x2) / 2.0 }
+    
+    static func center(span: Span) -> Double { center(x1: span.x1, x2: span.x2) }
+    
+    static func mass(span: Span) -> Double {
+        
+        let result = Conveyor.integrate_left(x1: span.x1, x2: span.x2)
+        return result
+    }
+    
+    func distance_left(span: Span) -> Double {
+        let center = Conveyor.center(span: span)
+        let distance = center - Double(x1)
+        return distance
+    }
+
+    func distance_right(span: Span) -> Double {
+        let center = Conveyor.center(span: span)
+        let distance = Double(x2) - center
+        return distance
+    }
+
+    func distance_random(span: Span) -> Double {
+        let left = distance_left(span: span)
+        let right = distance_right(span: span)
+        let distance = (left + right) / 2.0
+        return distance
+    }
+    
+    func distance_left(drop_black_hole: DropBlackHole) -> Double { distance_left(x: drop_black_hole.x) }
+    func distance_right(drop_black_hole: DropBlackHole) -> Double { distance_right(x: drop_black_hole.x) }
+    func distance_random(drop_black_hole: DropBlackHole) -> Double { distance_random(x: drop_black_hole.x) }
+    
+    
+    func distance_left(x: Double) -> Double {
+        let distance = x - Double(x1)
+        return distance
+    }
+
+    func distance_right(x: Double) -> Double {
+        let distance = Double(x2) - x
+        return distance
+    }
+
+    func distance_random(x: Double) -> Double {
+        let left = distance_left(x: x)
+        let right = distance_right(x: x)
+        let distance = (left + right) / 2.0
+        return distance
     }
     
     static func count(span: Span) -> Int {
-        if span.is_range {
-            let result = (span.x2 - span.x1)
-            return result
-        } else {
-            return 0
+        let result = (span.x2 - span.x1)
+        if result <= 0 {
+            fatalError("span should not have 0 length, count function fails")
         }
+        return result
     }
     
     static func percent(span: Span, multiplier: Double) -> Double {
-        let count = count(span: span)
-        if count <= 0 {
-            return 0.0
+        (Double(count(span: span)) * multiplier) / Double(1_000_000)
+    }
+    
+    func ingest_drop_black_hole_original(black_hole_mass: Double,
+                                         black_hole_distance: Double,
+                                         black_hole_center: Double) {
+        
+        let drop_black_hole = DropBlackHole(x: black_hole_center,
+                                            distance: black_hole_distance,
+                                            mass: black_hole_mass)
+        drop_black_holes_original.append(drop_black_hole)
+        
+        if let left_collider = left_collider {
+            left_collider.ingest_drop_black_hole_original(black_hole_mass: black_hole_mass / 2.0,
+                                                          black_hole_distance: black_hole_distance + black_hole_center - Double(x1),
+                                                          black_hole_center: Double(x1))
         }
-        return (Double(count) * multiplier) / Double(1_000_000)
+        if let right_collider = right_collider {
+            right_collider.ingest_drop_black_hole_original(black_hole_mass: black_hole_mass / 2.0,
+                                                           black_hole_distance: black_hole_distance + Double(x2) - black_hole_center,
+                                                           black_hole_center: Double(x2))
+        }
+    }
+    
+    func ingest_drop_black_hole_modified(black_hole_mass: Double,
+                                         black_hole_distance: Double,
+                                         black_hole_center: Double) {
+        
+        let drop_black_hole = DropBlackHole(x: black_hole_center,
+                                            distance: black_hole_distance,
+                                            mass: black_hole_mass)
+        drop_black_holes_modified.append(drop_black_hole)
+        
+        if let left_collider = left_collider {
+            left_collider.ingest_drop_black_hole_modified(black_hole_mass: black_hole_mass / 2.0,
+                                                          black_hole_distance: black_hole_distance + black_hole_center - Double(x1),
+                                                          black_hole_center: Double(x1))
+        }
+        if let right_collider = right_collider {
+            right_collider.ingest_drop_black_hole_modified(black_hole_mass: black_hole_mass / 2.0,
+                                                           black_hole_distance: black_hole_distance + Double(x2) - black_hole_center,
+                                                           black_hole_center: Double(x2))
+        }
+    }
+    
+    private func calculate_black_holes_modified_clean() {
+        var stack = [Conveyor]()
+        stack.append(self)
+        while stack.count > 0 {
+            guard let conveyor = stack.popLast() else { break }
+            
+            conveyor.drop_black_holes_modified.removeAll(keepingCapacity: true)
+            
+            if let left_collider = conveyor.left_collider { stack.append(left_collider) }
+            if let right_collider = conveyor.right_collider { stack.append(right_collider) }
+        }
+        
+    }
+    
+    private func finish_ingest_drop_black_hole_modified(black_hole_mass: Double,
+                                                        black_hole_distance: Double,
+                                                        x: Double,
+                                                        which: Which) {
+        switch which {
+        case .fixed_left:
+            if let left_collider = left_collider {
+                left_collider.ingest_drop_black_hole_modified(black_hole_mass: black_hole_mass / 2.0,
+                                                              black_hole_distance: black_hole_distance + distance_left(x: x),
+                                                              black_hole_center: Double(x1))
+            }
+        case .fixed_right:
+            if let right_collider = right_collider {
+                right_collider.ingest_drop_black_hole_modified(black_hole_mass: black_hole_mass / 2.0,
+                                                               black_hole_distance: black_hole_distance + distance_right(x: x),
+                                                               black_hole_center: Double(x2))
+            }
+        case .random:
+            if let left_collider = left_collider {
+                left_collider.ingest_drop_black_hole_modified(black_hole_mass: black_hole_mass / 2.0,
+                                                              black_hole_distance: black_hole_distance + distance_left(x: x),
+                                                              black_hole_center: Double(x1))
+            }
+            if let right_collider = right_collider {
+                right_collider.ingest_drop_black_hole_modified(black_hole_mass: black_hole_mass / 2.0,
+                                                               black_hole_distance: black_hole_distance + distance_right(x: x),
+                                                               black_hole_center: Double(x2))
+            }
+        }
+    }
+    
+    func calculate_black_holes_modified(which: Which) {
+        calculate_black_holes_modified_clean()
+        
+        for drop_black_hole in drop_black_holes_original {
+            let black_hole_center = drop_black_hole.x
+            let black_hole_mass = drop_black_hole.mass
+            
+            let distance: Double
+            switch which {
+            case .fixed_left:
+                distance = distance_left(drop_black_hole: drop_black_hole)
+            case .fixed_right:
+                distance = distance_right(drop_black_hole: drop_black_hole)
+            case .random:
+                distance = distance_random(drop_black_hole: drop_black_hole)
+            }
+            
+            let drop_black_hole = DropBlackHole(x: black_hole_center,
+                                                distance: distance,
+                                                mass: black_hole_mass)
+            drop_black_holes_modified.append(drop_black_hole)
+            
+            finish_ingest_drop_black_hole_modified(black_hole_mass: black_hole_mass,
+                                                   black_hole_distance: 0.0,
+                                                   x: black_hole_center,
+                                                   which: which)
+        }
+        
+        for drop_span in drop_spans {
+            let black_hole_center = Conveyor.center(span: drop_span)
+            let black_hole_mass = Conveyor.mass(span: drop_span)
+            
+            let distance: Double
+            switch which {
+            case .fixed_left:
+                distance = distance_left(span: drop_span)
+            case .fixed_right:
+                distance = distance_right(span: drop_span)
+            case .random:
+                distance = distance_random(span: drop_span)
+            }
+            
+            let drop_black_hole = DropBlackHole(x: black_hole_center,
+                                                distance: distance,
+                                                mass: black_hole_mass)
+            drop_black_holes_modified.append(drop_black_hole)
+            
+            finish_ingest_drop_black_hole_modified(black_hole_mass: black_hole_mass,
+                                                   black_hole_distance: 0.0,
+                                                   x: black_hole_center,
+                                                   which: which)
+        }
+    }
+    
+    static func crush_black_holes_modified(conveyor: Conveyor, which: Which) -> Double {
+        var result = Double(0.0)
+        
+        for drop_black_hole in conveyor.drop_black_holes_modified {
+            let distance_left = drop_black_hole.x - Double(conveyor.x1)
+            let distance_right = Double(conveyor.x2) - drop_black_hole.x
+            switch which {
+            case .fixed_left:
+                result += drop_black_hole.crush(distance: distance_left)
+                if let left_collider = conveyor.left_collider {
+                    result += crush_black_holes_modified(conveyor: left_collider, which: which)
+                }
+            case .fixed_right:
+                result += drop_black_hole.crush(distance: distance_right)
+                if let right_collider = conveyor.right_collider {
+                    result += crush_black_holes_modified(conveyor: right_collider, which: which)
+                }
+            case .random:
+                let distance_random = (distance_left + distance_right) / 2.0
+                result += drop_black_hole.crush(distance: distance_random)
+                if let left_collider = conveyor.left_collider {
+                    result += crush_black_holes_modified(conveyor: left_collider, which: which)
+                }
+                if let right_collider = conveyor.right_collider {
+                    result += crush_black_holes_modified(conveyor: right_collider, which: which)
+                }
+            }
+        }
+        return result
+    }
+    
+    
+    func crush_black_holes_modified(which: Which) -> Double {
+        Conveyor.crush_black_holes_modified(conveyor: self, which: which)
+    }
+    
+    func print_black_holes_modified() {
+        print("\(name) black holes modified:")
+        for drop_black_hole in drop_black_holes_modified {
+            print("\t\(drop_black_hole)")
+        }
     }
     
 }
-

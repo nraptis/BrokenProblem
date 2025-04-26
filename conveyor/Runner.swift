@@ -26,18 +26,23 @@ struct Runner {
         
         //print("o")
         
-        BruteTests.test_discovered_failure_case_w()
+        //BruteTests.test_discovered_failure_case_w()
         
         
         //BruteTests.test_1000_3_conveyor()
-        //BruteTests.test_1000_2_conveyor()
+        BruteTests.test_discovered_failure_case_x()
         
         
-        //BruteTests.test_discovered_failure_case_t()
-        //BruteTests.test_all()
+        //BruteTests.test_example_1()
+        //BruteTests.test_discovered_failure_case_a()
         
         
         
+        //let MED1 = getMinExpectedHorizontalTravelDistance(TestCase.test_case_1)
+        //print("MED1: \(MED1)")
+        
+        //let MED2 = getMinExpectedHorizontalTravelDistance(TestCase.test_case_2)
+        //print("MED2: \(MED2)")
         
         print("ooo")
         print("oo")
@@ -67,15 +72,11 @@ struct Runner {
         //BruteTests.test_100_four_conveyor()
         //BruteTests.test_100_twenty_conveyor()
         
+        //let MED1 = getMinExpectedHorizontalTravelDistance(TestCase.test_case_1)
+        //print("MED1: \(MED1)")
         
-        
-        /*
-        let MED1 = getMinExpectedHorizontalTravelDistance(TestCase.test_case_1)
-        print("MED1: \(MED1)")
-        
-        let MED2 = getMinExpectedHorizontalTravelDistance(TestCase.test_case_2)
-        print("MED2: \(MED2)")
-        */
+        //let MED2 = getMinExpectedHorizontalTravelDistance(TestCase.test_case_2)
+        //print("MED2: \(MED2)")
         
         
         //let STAIR = getMinExpectedHorizontalTravelDistance(TestCase.test_case_stairs)

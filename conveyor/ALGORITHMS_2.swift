@@ -59,7 +59,7 @@ func getDrops(conveyors: [Conveyor]) -> [Drop] {
         if let current_conveyor = heap.peek() {
             if let _previous_conveyor = previous_conveyor {
                 if current_conveyor !== _previous_conveyor {
-                    let span = Span(x1: previous_x, x2: current_x, is_range: true)
+                    let span = Span(x1: previous_x, x2: current_x)
                     let drop = Drop(conveyor: _previous_conveyor, span: span)
                     result.append(drop)
                     previous_conveyor = current_conveyor
@@ -71,7 +71,7 @@ func getDrops(conveyors: [Conveyor]) -> [Drop] {
             }
         } else {
             if let _previous_conveyor = previous_conveyor {
-                let span = Span(x1: previous_x, x2: current_x, is_range: true)
+                let span = Span(x1: previous_x, x2: current_x)
                 let drop = Drop(conveyor: _previous_conveyor, span: span)
                 result.append(drop)
                 previous_conveyor = nil
@@ -82,7 +82,7 @@ func getDrops(conveyors: [Conveyor]) -> [Drop] {
     return result
 }
 
-func findColliders(conveyors: [Conveyor]) {
+func findCollidersAndParents(conveyors: [Conveyor]) {
     
     var actions = [DropSweepAction]()
     for conveyor in conveyors {
@@ -159,11 +159,21 @@ func findColliders(conveyors: [Conveyor]) {
             actionIndex += 1
         }
     }
+    
+    for conveyor in conveyors {
+        if let left_collider = conveyor.left_collider {
+            left_collider.parents.insert(conveyor.index)
+        }
+        if let right_collider = conveyor.right_collider {
+            right_collider.parents.insert(conveyor.index)
+        }
+    }
+    
 }
 
 func registerDrops(conveyors: [Conveyor], drops: [Drop]) {
     for drop in drops {
         let conveyor = drop.conveyor
-        conveyor.dropSpans.append(drop.span)
+        conveyor.drop_spans.append(drop.span)
     }
 }

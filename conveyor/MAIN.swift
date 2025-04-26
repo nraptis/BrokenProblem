@@ -74,24 +74,24 @@ func getMinExpectedHorizontalTravelDistance(conveyors: [Conveyor],
 }
 
 func getMinExpectedHorizontalTravelDistance(conveyors: [Conveyor]) -> Double {
-    findColliders(conveyors: conveyors)
+    findCollidersAndParents(conveyors: conveyors)
     let drops = getDrops(conveyors: conveyors)
     registerDrops(conveyors: conveyors, drops: drops)
     findRemainingMovement(conveyors: conveyors)
-    findFallSums(conveyors: conveyors)
-    findFalls(conveyors: conveyors)
-    //let veryBestOne = findTheVeryBestOne(conveyors: conveyors)
-    let veryBestOne = playMagicTheGathering(conveyors: conveyors)
+    findBlackHoles(conveyors: conveyors)
     
+    
+    
+    
+    
+    let veryBestOne = findTheVeryBestOne(conveyors: conveyors)
     c_lock_wise = veryBestOne.conveyor
     d_lock_wise = veryBestOne.direction
-    
     let result = getMinExpectedHorizontalTravelDistance(conveyors: conveyors,
                                                         drops: drops,
                                                         locked_conveyor: veryBestOne.conveyor,
                                                         locked_direction: veryBestOne.direction)
     return result
-    
 }
 
 func getMinExpectedHorizontalTravelDistance(_ N: Int, _ H: [Int], _ A: [Int], _ B: [Int]) -> Double {
@@ -104,18 +104,12 @@ func getMinExpectedHorizontalTravelDistance(_ N: Int, _ H: [Int], _ A: [Int], _ 
     return getMinExpectedHorizontalTravelDistance(conveyors: conveyors)
 }
 
-
 func getMinExpectedHorizontalTravelDistance_BruteForce(conveyors: [Conveyor]) -> Double {
-    findColliders(conveyors: conveyors)
+    findCollidersAndParents(conveyors: conveyors)
     let drops = getDrops(conveyors: conveyors)
     registerDrops(conveyors: conveyors, drops: drops)
     findRemainingMovement(conveyors: conveyors)
-    findFallSums(conveyors: conveyors)
-    findFalls(conveyors: conveyors)
-    
     var result = Double(100_000_000_000_000.0)
-    
-    
     for locked_conveyor in conveyors {
         let directions = [Direction.left, Direction.right]
         for locked_direction in directions {
@@ -135,9 +129,7 @@ func getMinExpectedHorizontalTravelDistance_BruteForce(conveyors: [Conveyor]) ->
             }
         }
     }
-    
     return result
-    
 }
 
 func getMinExpectedHorizontalTravelDistance_BruteForce(_ N: Int, _ H: [Int], _ A: [Int], _ B: [Int]) -> Float {
@@ -150,12 +142,10 @@ func getMinExpectedHorizontalTravelDistance_BruteForce(_ N: Int, _ H: [Int], _ A
     return Float(getMinExpectedHorizontalTravelDistance_BruteForce(conveyors: conveyors))
 }
 
-
-
 func getMinExpectedHorizontalTravelDistance_Simulation(conveyors: [Conveyor]) -> Double {
 
     // This has been tested to death; I am cetain that it's correct.
-    findColliders(conveyors: conveyors)
+    findCollidersAndParents(conveyors: conveyors)
     
     // This has been tested to death; I am cetain that it's correct.
     let drops = getDrops(conveyors: conveyors)
@@ -227,7 +217,7 @@ func getMinExpectedHorizontalTravelDistance_Simulation(conveyors: [Conveyor]) ->
             var counts = [Int]()
             
             for conveyor in conveyors {
-                for span in conveyor.dropSpans {
+                for span in conveyor.drop_spans {
                     
                     // If a package lands in *this* drop-span, on average, it will travel an additional "left_distance" units before falling off the conveyor.
                     // *POSSIBLE OVERSIGT* Is this good math or bad, does it make sense?
@@ -313,7 +303,6 @@ func getMinExpectedHorizontalTravelDistance_Simulation(conveyors: [Conveyor]) ->
     }
     return result
 }
-
 
 func getMinExpectedHorizontalTravelDistance_Simulation(_ N: Int, _ H: [Int], _ A: [Int], _ B: [Int]) -> Float {
     

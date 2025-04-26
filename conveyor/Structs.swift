@@ -14,19 +14,15 @@ struct VeryBestOne {
     let direction: Direction
 }
 
-class Fall {
-    let x: Int
-    let amount: Double
-    
-    init(x: Int, amount: Double) {
-        self.x = x
-        self.amount = amount
-    }
-}
-
 enum Direction {
     case left
     case right
+}
+
+enum Which {
+    case fixed_left
+    case fixed_right
+    case random
 }
 
 struct DropSweepAction {
@@ -48,15 +44,20 @@ class Drop {
     }
 }
 
-class Span {
+class Span: CustomStringConvertible {
     let x1: Int
     let x2: Int
-    let is_range: Bool
-    init(x1: Int, x2: Int, is_range: Bool) {
+    init(x1: Int, x2: Int) {
+        
+        if (x1 == x2) {
+            fatalError("span should not have 0 length, this is a misunderstanding!")
+        }
+        
         self.x1 = x1
         self.x2 = x2
-        self.is_range = is_range
+    }
+    
+    var description: String {
+        return "[\(x1)...\(x2)]"
     }
 }
-
-

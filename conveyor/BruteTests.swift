@@ -27,20 +27,21 @@ struct BruteTests {
         let epsilon = 0.005
         
         if (delta1 > epsilon) || (delta2 > epsilon) || (delta3 > epsilon) {
+            print("~~~~~~~~~~~~~~~~")
+            print("~~~~~~~~~~~~~~~~")
             print("\(name) Failed!!!")
-            
-            print("c_lock_simulation = \(c_lock_simulation), \(d_lock_simulation)")
-            print("result_simulation = \(sol3)")
-            
-            print("c_lock_wise = \(c_lock_wise), \(d_lock_wise)")
-            print("result_wise = \(sol1)")
-            
+            print("========")
+            print("EXPECTED, A = \(c_lock_simulation.name), \(d_lock_simulation), \(sol3)")
+            print("EXPECTED, B = \(c_lock_brute.name), \(d_lock_brute), \(sol2)")
+            print("========")
+            print("RESULT ====== \(c_lock_wise.name), \(d_lock_wise), \(sol1)")
+            print("========")
             
             for conveyor in conveyors {
                 print("\t\(conveyor)")
             }
-            print("End-Conveyor-List")
-            
+            print("~~~~~~~~~~~~~~~~")
+            print("~~~~~~~~~~~~~~~~")
             return false
         } else {
             
@@ -68,6 +69,9 @@ struct BruteTests {
     }
     
     static func test_all() {
+        test_example_1()
+        test_example_2()
+        
         test_discovered_failure_case_a()
         test_discovered_failure_case_b()
         test_discovered_failure_case_c()
@@ -91,9 +95,67 @@ struct BruteTests {
         test_discovered_failure_case_u()
     }
     
+    static func test_example_1() {
+        let c_0 = Conveyor(name: "c0", index: 0, x1: 100000, x2: 600000, y: 10)
+        let c_1 = Conveyor(name: "c1", index: 1, x1: 400000, x2: 800000, y: 20)
+        let conveyors = [c_0, c_1]
+        _ = execute(name: "test_example_1", conveyors: conveyors)
+    }
+    
+    static func test_example_2() {
+        let c_0 = Conveyor(name: "c0", index: 0, x1: 5000, x2: 7000, y: 2)
+        let c_1 = Conveyor(name: "c1", index: 1, x1: 2000, x2: 8000, y: 8)
+        let c_2 = Conveyor(name: "c2", index: 2, x1: 7000, x2: 11000, y: 5)
+        let c_3 = Conveyor(name: "c3", index: 3, x1: 9000, x2: 11000, y: 9)
+        let c_4 = Conveyor(name: "c4", index: 4, x1: 0, x2: 4000, y: 4)
+        let conveyors = [c_0, c_1, c_2, c_3, c_4]
+        _ = execute(name: "test_example_2", conveyors: conveyors)
+    }
+    
     static func test_discovered_failure_case_a() {
-        let c_0 = Conveyor(name: "c0", index: 0, x1: 400000, x2: 900000, y: 40)
-        let c_1 = Conveyor(name: "c1", index: 1, x1: 300000, x2: 800000, y: 50)
+        
+        //
+        //              [        c0        ]
+        //                  [        c1        ]
+        // 00  01  02  03  04  05  06  07  08  09  10  11  12
+        
+        //Expectation: (LOCK => c0, DIR => left)
+        
+        /*
+         c0 black holes modified:
+             DropBlackHole(x: 550000.0, distance: 250000.0, mass: 250000.0)
+         c0 black holes modified:
+             DropBlackHole(x: 550000.0, distance: 250000.0, mass: 250000.0)
+         c0 black holes modified:
+             DropBlackHole(x: 550000.0, distance: 250000.0, mass: 250000.0)
+         These is the crush: 125000.0, 168750.0, 187500.0
+              ==> left: 125000.0
+              ==> right: 168750.0
+              ==> random: 187500.0
+              ==> improvement_right: 18750.0
+              ==> improvement_left: 18750.0
+        
+        
+         c1 black holes modified:
+             DropBlackHole(x: 800000.0, distance: 400000.0, mass: 125000.0)
+             DropBlackHole(x: 850000.0, distance: 450000.0, mass: 50000.0)
+         c1 black holes modified:
+             DropBlackHole(x: 800000.0, distance: 100000.0, mass: 125000.0)
+             DropBlackHole(x: 850000.0, distance: 50000.0, mass: 50000.0)
+         c1 black holes modified:
+             DropBlackHole(x: 800000.0, distance: 250000.0, mass: 125000.0)
+             DropBlackHole(x: 850000.0, distance: 250000.0, mass: 50000.0)
+         These is the crush: 145000.0, 30000.0, 87500.0
+              ==> left: 145000.0
+              ==> right: 30000.0
+              ==> random: 87500.0
+              ==> improvement_right: 57500.0
+              ==> improvement_left: 57500.0
+        */
+        
+        let c_0 = Conveyor(name: "c0", index: 0, x1: 300000, x2: 800000, y: 100)
+        let c_1 = Conveyor(name: "c1", index: 1, x1: 400000, x2: 900000, y: 50)
+        
         let conveyors = [c_0, c_1]
         _ = execute(name: "test_discovered_failure_case_a", conveyors: conveyors)
     }
@@ -455,6 +517,40 @@ struct BruteTests {
         let conveyors = [c_1, c_0, c_2]
         _ = execute(name: "test_discovered_failure_case_w", conveyors: conveyors)
     }
+    
+    static func test_discovered_failure_case_x() {
+        
+        //
+        //                  [          c0         ] (  ==> )
+        //
+        //      [              c1              ]
+        //
+        // 00  01  02  03  04  05  06  07  08  09  10  11  12
+        
+        /*
+        These is the crush: 135000.0, 345000.0, 240000.0
+             ==> left: 135000.0
+             ==> right: 345000.0
+             ==> random: 240000.0
+             ==> improvement_right: -105000.0
+             ==> improvement_left: 105000.0
+        
+        These is the crush: 270000.0, 180000.0, 285000.0
+             ==> left: 270000.0
+             ==> right: 180000.0
+             ==> random: 285000.0
+             ==> improvement_right: 105000.0
+             ==> improvement_left: 15000.0
+        */
+        
+        //Expectation: {c0, right}
+        let c_0 = Conveyor(name: "c0", index: 0, x1: 400000, x2: 1000000, y: 100)
+        let c_1 = Conveyor(name: "c1", index: 1, x1: 100000, x2: 900000, y: 50)
+        
+        let conveyors = [c_1, c_0]
+        _ = execute(name: "test_discovered_failure_case_x", conveyors: conveyors)
+    }
+    
     
     
     static func test_1000_2_conveyor() {
