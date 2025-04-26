@@ -14,7 +14,7 @@ func getMinExpectedHorizontalTravelDistance(_ testCase: TestCase) -> Float {
     let sol2 = getMinExpectedHorizontalTravelDistance_BruteForce(conveyors: Conveyor.clone(conveyors: testCase.conveyors))
     
     let delta = fabs(sol1 - sol2)
-    if delta < 0.01 {
+    if delta > 0.01 {
         print("FAILED!!! This Test Failed!!!")
     }
     
@@ -23,6 +23,18 @@ func getMinExpectedHorizontalTravelDistance(_ testCase: TestCase) -> Float {
 
 struct TestCase {
     let conveyors: [Conveyor]
+    
+    static var test_tiny: TestCase {
+        let c0 = Conveyor(name: "c0", index: 0, x1: 1, x2: 2, y: 100)
+        return TestCase(conveyors: [c0])
+    }
+    
+    static var test_touching_ends_a: TestCase {
+        let c0 = Conveyor(name: "c0", index: 0, x1: 100_000, x2: 200_000, y: 100)
+        let c1 = Conveyor(name: "c1", index: 1, x1: 200_000, x2: 300_000, y: 0)
+        return TestCase(conveyors: [c0, c1])
+    }
+    
     
     static var test_case_stepper_1: TestCase {
         let c0 = Conveyor(name: "c0", index: 0, x1: 0, x2: 4, y: 100)

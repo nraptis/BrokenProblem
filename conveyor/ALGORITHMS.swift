@@ -12,7 +12,7 @@ func getFallCostRight(x: Int,
                       collider: Conveyor,
                       locked_conveyor: Conveyor,
                       locked_direction: Direction) -> Double {
-    let cost_lhs = Double(abs(collider.x2 - x))
+    let cost_lhs = Double(collider.x2 - x)
     let cost_rhs = getFallCostRight(conveyor: collider,
                                     locked_conveyor: locked_conveyor,
                                     locked_direction: locked_direction)
@@ -25,7 +25,7 @@ func getFallCostLeft(x: Int,
                      collider: Conveyor,
                      locked_conveyor: Conveyor,
                      locked_direction: Direction) -> Double {
-    let cost_lhs = Double(abs(x - collider.x1))
+    let cost_lhs = Double(x - collider.x1)
     let cost_rhs = getFallCostLeft(conveyor: collider,
                                    locked_conveyor: locked_conveyor,
                                    locked_direction: locked_direction)
@@ -193,30 +193,11 @@ func findTheVeryBestOne(conveyors: [Conveyor]) -> VeryBestOne {
     var result_direction = Direction.left
     var result_score = Double(-1.0)
     
-    
     for conveyor in conveyors {
         
-        
-        var score_left = Double(0.0)
-        var score_right = Double(0.0)
-        var score_average = Double(0.0)
-        
-        for black_hole in conveyor.mixed_black_holes_original {
-            
-            let mass = black_hole.mass
-            
-            let remaining_movement_left = conveyor.remaining_movement_left
-            let remaining_movement_right = conveyor.remaining_movement_right
-            let remaining_movement_random = (remaining_movement_left + remaining_movement_right) / 2.0
-            
-            let distance_left = conveyor.distance_left(drop_black_hole: black_hole) + remaining_movement_left
-            let distance_right = conveyor.distance_right(drop_black_hole: black_hole) + remaining_movement_right
-            let distance_random = conveyor.distance_random(drop_black_hole: black_hole) + remaining_movement_random
-            
-            score_left += mass * distance_left
-            score_right += mass * distance_right
-            score_average += mass * distance_random
-        }
+        let score_left = conveyor.cozt_left
+        let score_right = conveyor.cozt_right
+        let score_average = conveyor.cozt_random
         
         let improvement_left = score_average - score_left
         let improvement_right = score_average - score_right
@@ -237,3 +218,4 @@ func findTheVeryBestOne(conveyors: [Conveyor]) -> VeryBestOne {
     let result = VeryBestOne(conveyor: result_conveyor, direction: result_direction)
     return result
 }
+

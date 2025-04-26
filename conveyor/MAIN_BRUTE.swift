@@ -1,109 +1,14 @@
 //
-//  M_E_T_D.swift
+//  MAIN_BRUTE.swift
 //  conveyor
 //
-//  Created by Nicholas Raptis on 4/16/25.
+//  Created by Nicholas Raptis on 4/26/25.
 //
 
 import Foundation
 
-var c_lock_simulation = Conveyor(name: "d_lock_simulation", index: -1, x1: 0, x2: 0, y: 0)
-var d_lock_simulation = Direction.left
-
-var c_lock_brute = Conveyor(name: "c_lock_brute", index: -1, x1: 0, x2: 0, y: 0)
-var d_lock_brute = Direction.left
-
-var c_lock_wise = Conveyor(name: "c_lock_wise", index: -1, x1: 0, x2: 0, y: 0)
-var d_lock_wise = Direction.left
-
-func getMinExpectedHorizontalTravelDistance(conveyors: [Conveyor],
-                                            drops: [Drop],
-                                            locked_conveyor: Conveyor,
-                                            locked_direction: Direction) -> Double {
-    
-    let MULTIPLIER_I: Int = 8_000_000
-    let MULTIPLIER_D: Double = Double(MULTIPLIER_I)
-    
-    var result = Double(0.0)
-    
-    for drop in drops {
-        let conveyor = drop.conveyor
-        let span = drop.span
-        let percent_m = Conveyor.percent(span: span, multiplier: MULTIPLIER_D)
-        if conveyor.index == locked_conveyor.index {
-            
-            switch locked_direction {
-            case .left:
-                
-                let left_lhs = conveyor.average_left(span: span)
-                let left_rhs = getFallCostLeft(conveyor: conveyor,
-                                               locked_conveyor: locked_conveyor,
-                                               locked_direction: locked_direction)
-                let left_total = (left_lhs + left_rhs)
-                result += left_total * percent_m
-                
-            case .right:
-                let right_lhs = conveyor.average_right(span: span)
-                let right_rhs = getFallCostRight(conveyor: conveyor,
-                                                 locked_conveyor: locked_conveyor,
-                                                 locked_direction: locked_direction)
-                let right_total = (right_lhs + right_rhs)
-                result += right_total * percent_m
-            }
-        } else {
-            let left_lhs = conveyor.average_left(span: span)
-            let left_rhs = getFallCostLeft(conveyor: conveyor,
-                                           locked_conveyor: locked_conveyor,
-                                           locked_direction: locked_direction)
-            
-            let left_total = (left_lhs + left_rhs)
-            
-            let right_lhs = conveyor.average_right(span: span)
-            let right_rhs = getFallCostRight(conveyor: conveyor,
-                                             locked_conveyor: locked_conveyor,
-                                             locked_direction: locked_direction)
-            
-            let right_total = (right_lhs + right_rhs)
-            
-            let average = (left_total + right_total) / 2.0
-            result += average * percent_m
-        }
-    }
-    
-    return (result / MULTIPLIER_D)
-}
-
-func getMinExpectedHorizontalTravelDistance(conveyors: [Conveyor]) -> Double {
-    findCollidersAndParents(conveyors: conveyors)
-    let drops = getDrops(conveyors: conveyors)
-    registerDrops(conveyors: conveyors, drops: drops)
-    findRemainingMovement(conveyors: conveyors)
-    findBlackHolesOriginal(conveyors: conveyors)
-    
-    
-    
-    let veryBestOne = findTheVeryBestOne(conveyors: conveyors)
-    c_lock_wise = veryBestOne.conveyor
-    d_lock_wise = veryBestOne.direction
-    let result = getMinExpectedHorizontalTravelDistance(conveyors: conveyors,
-                                                        drops: drops,
-                                                        locked_conveyor: veryBestOne.conveyor,
-                                                        locked_direction: veryBestOne.direction)
-    return result
-}
-
-func getMinExpectedHorizontalTravelDistance(_ N: Int, _ H: [Int], _ A: [Int], _ B: [Int]) -> Double {
-    var conveyors = [Conveyor]()
-    for index in 0..<N {
-        let y = H[index]; let x1 = A[index]; let x2 = B[index]
-        let conveyor = Conveyor(name: "c\(index)", index: index, x1: x1, x2: x2, y: y)
-        conveyors.append(conveyor)
-    }
-    return getMinExpectedHorizontalTravelDistance(conveyors: conveyors)
-}
-
 func getMinExpectedHorizontalTravelDistance_BruteForce(conveyors: [Conveyor]) -> Double {
-    findCollidersAndParents(conveyors: conveyors)
+    findColliders(conveyors: conveyors)
     let drops = getDrops(conveyors: conveyors)
     registerDrops(conveyors: conveyors, drops: drops)
     findRemainingMovement(conveyors: conveyors)
@@ -120,9 +25,6 @@ func getMinExpectedHorizontalTravelDistance_BruteForce(conveyors: [Conveyor]) ->
                                                               locked_conveyor: locked_conveyor,
                                                               locked_direction: locked_direction)
             if cost < result {
-                c_lock_brute = locked_conveyor
-                d_lock_brute = locked_direction
-                
                 result = cost
             }
         }
@@ -134,7 +36,7 @@ func getMinExpectedHorizontalTravelDistance_BruteForce(_ N: Int, _ H: [Int], _ A
     var conveyors = [Conveyor]()
     for index in 0..<N {
         let y = H[index]; let x1 = A[index]; let x2 = B[index]
-        let conveyor = Conveyor(name: "c\(index)", index: index, x1: x1, x2: x2, y: y)
+        let conveyor = Conveyor(index: index, x1: x1, x2: x2, y: y)
         conveyors.append(conveyor)
     }
     return Float(getMinExpectedHorizontalTravelDistance_BruteForce(conveyors: conveyors))
@@ -143,7 +45,7 @@ func getMinExpectedHorizontalTravelDistance_BruteForce(_ N: Int, _ H: [Int], _ A
 func getMinExpectedHorizontalTravelDistance_Simulation(conveyors: [Conveyor]) -> Double {
 
     // This has been tested to death; I am cetain that it's correct.
-    findCollidersAndParents(conveyors: conveyors)
+    findColliders(conveyors: conveyors)
     
     // This has been tested to death; I am cetain that it's correct.
     let drops = getDrops(conveyors: conveyors)
@@ -293,8 +195,6 @@ func getMinExpectedHorizontalTravelDistance_Simulation(conveyors: [Conveyor]) ->
             
             if total < result {
                 result = total
-                c_lock_simulation = locked_conveyor
-                d_lock_simulation = locked_direction
             }
             
         }
@@ -307,7 +207,7 @@ func getMinExpectedHorizontalTravelDistance_Simulation(_ N: Int, _ H: [Int], _ A
     var conveyors = [Conveyor]()
     for index in 0..<N {
         let y = H[index]; let x1 = A[index]; let x2 = B[index]
-        let conveyor = Conveyor(name: "c\(index)", index: index, x1: x1, x2: x2, y: y)
+        let conveyor = Conveyor(index: index, x1: x1, x2: x2, y: y)
         conveyors.append(conveyor)
     }
     return Float(getMinExpectedHorizontalTravelDistance_Simulation(conveyors: conveyors))

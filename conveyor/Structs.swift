@@ -19,23 +19,18 @@ enum Direction {
     case right
 }
 
-enum Which {
-    case fixed_left
-    case fixed_right
-    case random
+enum ActionType {
+    case add
+    case remove
 }
 
 struct DropSweepAction {
-    enum ActionType {
-        case add
-        case remove
-    }
     let x: Int
     let conveyor: Conveyor
     let type: ActionType
 }
 
-class Drop {
+struct Drop {
     let conveyor: Conveyor
     let span: Span
     init(conveyor: Conveyor, span: Span) {
@@ -44,20 +39,24 @@ class Drop {
     }
 }
 
-class Span: CustomStringConvertible {
+struct Span {
     let x1: Int
     let x2: Int
     init(x1: Int, x2: Int) {
-        
-        if (x1 == x2) {
-            fatalError("span should not have 0 length, this is a misunderstanding!")
-        }
-        
         self.x1 = x1
         self.x2 = x2
     }
-    
-    var description: String {
-        return "[\(x1)...\(x2)]"
+}
+
+struct DropBlackHole {
+    let x: Double
+    var distance: Double
+    var mass: Double
+
+    init(x: Double, distance: Double, mass: Double) {
+        self.x = x
+        self.distance = distance
+        self.mass = mass
     }
 }
+
