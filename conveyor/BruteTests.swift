@@ -45,10 +45,12 @@ struct BruteTests {
             return false
         } else {
             
-            print("\(name) Passed!!!")
+            
             
             /*
             
+            print("\(name) Passed!!!")
+             
             
             print("sol1 = \(sol1)")
             print("sol2 = \(sol2)")
@@ -93,6 +95,14 @@ struct BruteTests {
         test_discovered_failure_case_s()
         test_discovered_failure_case_t()
         test_discovered_failure_case_u()
+        
+        test_1000_2_conveyor()
+        test_1000_3_conveyor()
+        test_1000_4_conveyor()
+        test_1000_5_conveyor()
+        test_1000_6_conveyor()
+        
+        
     }
     
     static func test_example_1() {
@@ -460,8 +470,18 @@ struct BruteTests {
         _ = execute(name: "test_discovered_failure_case_t", conveyors: conveyors)
     }
     
+    //EXPECTED, A = c0, right, 355000.0
+    //EXPECTED, B = c0, right, 355000.0
     static func test_discovered_failure_case_u() {
-        let c_0 = Conveyor(name: "c0", index: 0, x1: 100000, x2: 900000, y: 100)
+        
+        //
+        //      [             c0               ] ( ==> )
+        //
+        //  [            c1            ]
+        //
+        // 00  01  02  03  04  05  06  07  08  09  10  11  12
+        
+        let c_0 = Conveyor(name: "c0", index: 0, x1: 100_000, x2: 900000, y: 100)
         let c_1 = Conveyor(name: "c1", index: 1, x1: 000_000, x2: 700000, y: 50)
         let conveyors = [c_0, c_1]
         _ = execute(name: "test_discovered_failure_case_u", conveyors: conveyors)
@@ -501,10 +521,10 @@ struct BruteTests {
         //
         //
         //              [         c2       ]
-        
         //
         // 00  01  02  03  04  05  06  07  08  09  10  11  12
 
+        
         // The improvements if we set c1 to the right:
         // A drop of (350_000) / 2 = 175_000 no longer falls to c0
         // The drop would also travel and additional (100_000 + 600_000) / 2 units
@@ -520,34 +540,30 @@ struct BruteTests {
     
     static func test_discovered_failure_case_x() {
         
+        
         //
-        //                  [          c0         ] (  ==> )
+        //                  [          c0          ]
         //
-        //      [              c1              ]
+        //  [          c1          ]
         //
         // 00  01  02  03  04  05  06  07  08  09  10  11  12
+        //
         
         /*
-        These is the crush: 135000.0, 345000.0, 240000.0
-             ==> left: 135000.0
-             ==> right: 345000.0
-             ==> random: 240000.0
-             ==> improvement_right: -105000.0
-             ==> improvement_left: 105000.0
-        
-        These is the crush: 270000.0, 180000.0, 285000.0
-             ==> left: 270000.0
-             ==> right: 180000.0
-             ==> random: 285000.0
-             ==> improvement_right: 105000.0
-             ==> improvement_left: 15000.0
+        Black Hole:{c0, [400000 to 600000, y=100] left: c1}, 1 Mixed Holes
+            ORIGINALS ======>
+                DropBlackHole(x:500,000, d:0, m:100,000, s: DROP(400000, 600000))
+        Black Hole:{c1, [0 to 600000, y=50]}, 2 Mixed Holes
+            ORIGINALS ======>
+                DropBlackHole(x:200,000, d:0, m:200,000, s: DROP(0, 400000))
+                DropBlackHole(x:400,000, d:100,000, m:50,000, s: FALL(c0))
         */
         
         //Expectation: {c0, right}
         let c_0 = Conveyor(name: "c0", index: 0, x1: 400000, x2: 1000000, y: 100)
-        let c_1 = Conveyor(name: "c1", index: 1, x1: 100000, x2: 900000, y: 50)
+        let c_1 = Conveyor(name: "c1", index: 1, x1: 000000, x2: 600000, y: 50)
         
-        let conveyors = [c_1, c_0]
+        let conveyors = [c_0, c_1]
         _ = execute(name: "test_discovered_failure_case_x", conveyors: conveyors)
     }
     
@@ -604,13 +620,40 @@ struct BruteTests {
         print("test_1000_4_conveyor => Done! (passes = \(passes), fails = \(fails))")
     }
     
-    static func test_100_twenty_conveyor() {
-        for test_index in 0..<100 {
-            let conveyors = GENERATE(min_count: 1, max_count: 20)
-            execute(name: "test_100_twenty_conveyor_\(test_index)", conveyors: conveyors)
+    static func test_1000_5_conveyor() {
+        
+        var passes = 0
+        var fails = 0
+        for test_index in 0..<1000 {
+            
+            let conveyors = GENERATE(min_count: 5, max_count: 5)
+            if execute(name: "test_1000_5_conveyor_\(test_index)", conveyors: conveyors) {
+                passes += 1
+            } else {
+                fails += 1
+            }
+            
         }
-        print("test_100_twenty_conveyor => Done!")
+        print("test_1000_5_conveyor => Done! (passes = \(passes), fails = \(fails))")
     }
+    
+    static func test_1000_6_conveyor() {
+        
+        var passes = 0
+        var fails = 0
+        for test_index in 0..<1000 {
+            
+            let conveyors = GENERATE(min_count: 6, max_count: 6)
+            if execute(name: "test_1000_6_conveyor_\(test_index)", conveyors: conveyors) {
+                passes += 1
+            } else {
+                fails += 1
+            }
+            
+        }
+        print("test_1000_6_conveyor => Done! (passes = \(passes), fails = \(fails))")
+    }
+    
     
     static func GENERATE(min_count: Int, max_count: Int, tries: Int = 256) -> [Conveyor] {
         

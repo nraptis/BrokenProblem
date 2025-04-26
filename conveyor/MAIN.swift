@@ -78,9 +78,7 @@ func getMinExpectedHorizontalTravelDistance(conveyors: [Conveyor]) -> Double {
     let drops = getDrops(conveyors: conveyors)
     registerDrops(conveyors: conveyors, drops: drops)
     findRemainingMovement(conveyors: conveyors)
-    findBlackHoles(conveyors: conveyors)
-    
-    
+    findBlackHolesOriginal(conveyors: conveyors)
     
     
     

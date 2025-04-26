@@ -196,32 +196,30 @@ func findTheVeryBestOne(conveyors: [Conveyor]) -> VeryBestOne {
     
     for conveyor in conveyors {
         
-        //c0 black holes modified:
-        //    DropBlackHole(x: 400000.0, distance: 300000.0, mass: 100000.0)
-        //    DropBlackHole(x: 250000.0, distance: 150000.0, mass: 150000.0)
         
-        conveyor.calculate_black_holes_modified(which: .fixed_left)
-        conveyor.print_black_holes_modified()
-        let crush_left = conveyor.crush_black_holes_modified(which: .fixed_left)
+        var score_left = Double(0.0)
+        var score_right = Double(0.0)
+        var score_average = Double(0.0)
         
-        conveyor.calculate_black_holes_modified(which: .fixed_right)
-        conveyor.print_black_holes_modified()
-        let crush_right = conveyor.crush_black_holes_modified(which: .fixed_right)
+        for black_hole in conveyor.mixed_black_holes_original {
+            
+            let mass = black_hole.mass
+            
+            let remaining_movement_left = conveyor.remaining_movement_left
+            let remaining_movement_right = conveyor.remaining_movement_right
+            let remaining_movement_random = (remaining_movement_left + remaining_movement_right) / 2.0
+            
+            let distance_left = conveyor.distance_left(drop_black_hole: black_hole) + remaining_movement_left
+            let distance_right = conveyor.distance_right(drop_black_hole: black_hole) + remaining_movement_right
+            let distance_random = conveyor.distance_random(drop_black_hole: black_hole) + remaining_movement_random
+            
+            score_left += mass * distance_left
+            score_right += mass * distance_right
+            score_average += mass * distance_random
+        }
         
-        conveyor.calculate_black_holes_modified(which: .random)
-        conveyor.print_black_holes_modified()
-        let crush_random = conveyor.crush_black_holes_modified(which: .random)
-        
-        print("These is the crush: \(crush_left), \(crush_right), \(crush_random)")
-        print("\t ==> left: \(crush_left)")
-        print("\t ==> right: \(crush_right)")
-        print("\t ==> random: \(crush_random)")
-        
-        let improvement_right = (crush_random - crush_right)
-        let improvement_left = (crush_random - crush_left)
-        
-        print("\t ==> improvement_right: \(improvement_right)")
-        print("\t ==> improvement_left: \(improvement_left)")
+        let improvement_left = score_average - score_left
+        let improvement_right = score_average - score_right
         
         if improvement_right > result_score {
             result_score = improvement_right
@@ -234,11 +232,8 @@ func findTheVeryBestOne(conveyors: [Conveyor]) -> VeryBestOne {
             result_conveyor = conveyor
             result_direction = .left
         }
-        
-        
     }
-    
-    
+
     let result = VeryBestOne(conveyor: result_conveyor, direction: result_direction)
     return result
 }

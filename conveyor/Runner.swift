@@ -28,9 +28,16 @@ struct Runner {
         
         //BruteTests.test_discovered_failure_case_w()
         
+        BruteTests.test_all()
         
-        //BruteTests.test_1000_3_conveyor()
-        BruteTests.test_discovered_failure_case_x()
+        //BruteTests.test_discovered_failure_case_x()
+        
+        //BruteTests.test_discovered_failure_case_u()
+        
+        
+        //BruteTests.test_all()
+        
+        
         
         
         //BruteTests.test_example_1()

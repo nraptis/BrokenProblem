@@ -76,14 +76,12 @@ class Conveyor: CustomStringConvertible {
     
     var drop_spans = [Span]()
     
-    var drop_black_holes_original = [DropBlackHole]()
-    var drop_black_holes_modified = [DropBlackHole]()
+    var mixed_black_holes_original = [DropBlackHole]()
     
-    var black_holes_random = [BlackHole]()
-    var black_holes_fixed_left = [BlackHole]()
-    var black_holes_fixed_right = [BlackHole]()
+    var fall_black_holes_original = [DropBlackHole]()
+    var fall_black_holes_modified = [DropBlackHole]()
     
-    var ingest_black_holes = [BlackHole]()
+    //var drop_black_holes_modified = [DropBlackHole]()
     
     
     var remaining_movement_left = Double(0.0)
@@ -234,188 +232,26 @@ class Conveyor: CustomStringConvertible {
         (Double(count(span: span)) * multiplier) / Double(1_000_000)
     }
     
-    func ingest_drop_black_hole_original(black_hole_mass: Double,
+    func ingest_fall_black_hole_original(black_hole_mass: Double,
                                          black_hole_distance: Double,
                                          black_hole_center: Double) {
         
-        let drop_black_hole = DropBlackHole(x: black_hole_center,
+        let fall_black_hole = DropBlackHole(x: black_hole_center,
                                             distance: black_hole_distance,
                                             mass: black_hole_mass)
-        drop_black_holes_original.append(drop_black_hole)
-        
+        fall_black_holes_original.append(fall_black_hole)
+
         if let left_collider = left_collider {
-            left_collider.ingest_drop_black_hole_original(black_hole_mass: black_hole_mass / 2.0,
+            left_collider.ingest_fall_black_hole_original(black_hole_mass: black_hole_mass / 2.0,
                                                           black_hole_distance: black_hole_distance + black_hole_center - Double(x1),
                                                           black_hole_center: Double(x1))
         }
         if let right_collider = right_collider {
-            right_collider.ingest_drop_black_hole_original(black_hole_mass: black_hole_mass / 2.0,
+            right_collider.ingest_fall_black_hole_original(black_hole_mass: black_hole_mass / 2.0,
                                                            black_hole_distance: black_hole_distance + Double(x2) - black_hole_center,
                                                            black_hole_center: Double(x2))
         }
     }
     
-    func ingest_drop_black_hole_modified(black_hole_mass: Double,
-                                         black_hole_distance: Double,
-                                         black_hole_center: Double) {
-        
-        let drop_black_hole = DropBlackHole(x: black_hole_center,
-                                            distance: black_hole_distance,
-                                            mass: black_hole_mass)
-        drop_black_holes_modified.append(drop_black_hole)
-        
-        if let left_collider = left_collider {
-            left_collider.ingest_drop_black_hole_modified(black_hole_mass: black_hole_mass / 2.0,
-                                                          black_hole_distance: black_hole_distance + black_hole_center - Double(x1),
-                                                          black_hole_center: Double(x1))
-        }
-        if let right_collider = right_collider {
-            right_collider.ingest_drop_black_hole_modified(black_hole_mass: black_hole_mass / 2.0,
-                                                           black_hole_distance: black_hole_distance + Double(x2) - black_hole_center,
-                                                           black_hole_center: Double(x2))
-        }
-    }
-    
-    private func calculate_black_holes_modified_clean() {
-        var stack = [Conveyor]()
-        stack.append(self)
-        while stack.count > 0 {
-            guard let conveyor = stack.popLast() else { break }
-            
-            conveyor.drop_black_holes_modified.removeAll(keepingCapacity: true)
-            
-            if let left_collider = conveyor.left_collider { stack.append(left_collider) }
-            if let right_collider = conveyor.right_collider { stack.append(right_collider) }
-        }
-        
-    }
-    
-    private func finish_ingest_drop_black_hole_modified(black_hole_mass: Double,
-                                                        black_hole_distance: Double,
-                                                        x: Double,
-                                                        which: Which) {
-        switch which {
-        case .fixed_left:
-            if let left_collider = left_collider {
-                left_collider.ingest_drop_black_hole_modified(black_hole_mass: black_hole_mass / 2.0,
-                                                              black_hole_distance: black_hole_distance + distance_left(x: x),
-                                                              black_hole_center: Double(x1))
-            }
-        case .fixed_right:
-            if let right_collider = right_collider {
-                right_collider.ingest_drop_black_hole_modified(black_hole_mass: black_hole_mass / 2.0,
-                                                               black_hole_distance: black_hole_distance + distance_right(x: x),
-                                                               black_hole_center: Double(x2))
-            }
-        case .random:
-            if let left_collider = left_collider {
-                left_collider.ingest_drop_black_hole_modified(black_hole_mass: black_hole_mass / 2.0,
-                                                              black_hole_distance: black_hole_distance + distance_left(x: x),
-                                                              black_hole_center: Double(x1))
-            }
-            if let right_collider = right_collider {
-                right_collider.ingest_drop_black_hole_modified(black_hole_mass: black_hole_mass / 2.0,
-                                                               black_hole_distance: black_hole_distance + distance_right(x: x),
-                                                               black_hole_center: Double(x2))
-            }
-        }
-    }
-    
-    func calculate_black_holes_modified(which: Which) {
-        calculate_black_holes_modified_clean()
-        
-        for drop_black_hole in drop_black_holes_original {
-            let black_hole_center = drop_black_hole.x
-            let black_hole_mass = drop_black_hole.mass
-            
-            let distance: Double
-            switch which {
-            case .fixed_left:
-                distance = distance_left(drop_black_hole: drop_black_hole)
-            case .fixed_right:
-                distance = distance_right(drop_black_hole: drop_black_hole)
-            case .random:
-                distance = distance_random(drop_black_hole: drop_black_hole)
-            }
-            
-            let drop_black_hole = DropBlackHole(x: black_hole_center,
-                                                distance: distance,
-                                                mass: black_hole_mass)
-            drop_black_holes_modified.append(drop_black_hole)
-            
-            finish_ingest_drop_black_hole_modified(black_hole_mass: black_hole_mass,
-                                                   black_hole_distance: 0.0,
-                                                   x: black_hole_center,
-                                                   which: which)
-        }
-        
-        for drop_span in drop_spans {
-            let black_hole_center = Conveyor.center(span: drop_span)
-            let black_hole_mass = Conveyor.mass(span: drop_span)
-            
-            let distance: Double
-            switch which {
-            case .fixed_left:
-                distance = distance_left(span: drop_span)
-            case .fixed_right:
-                distance = distance_right(span: drop_span)
-            case .random:
-                distance = distance_random(span: drop_span)
-            }
-            
-            let drop_black_hole = DropBlackHole(x: black_hole_center,
-                                                distance: distance,
-                                                mass: black_hole_mass)
-            drop_black_holes_modified.append(drop_black_hole)
-            
-            finish_ingest_drop_black_hole_modified(black_hole_mass: black_hole_mass,
-                                                   black_hole_distance: 0.0,
-                                                   x: black_hole_center,
-                                                   which: which)
-        }
-    }
-    
-    static func crush_black_holes_modified(conveyor: Conveyor, which: Which) -> Double {
-        var result = Double(0.0)
-        
-        for drop_black_hole in conveyor.drop_black_holes_modified {
-            let distance_left = drop_black_hole.x - Double(conveyor.x1)
-            let distance_right = Double(conveyor.x2) - drop_black_hole.x
-            switch which {
-            case .fixed_left:
-                result += drop_black_hole.crush(distance: distance_left)
-                if let left_collider = conveyor.left_collider {
-                    result += crush_black_holes_modified(conveyor: left_collider, which: which)
-                }
-            case .fixed_right:
-                result += drop_black_hole.crush(distance: distance_right)
-                if let right_collider = conveyor.right_collider {
-                    result += crush_black_holes_modified(conveyor: right_collider, which: which)
-                }
-            case .random:
-                let distance_random = (distance_left + distance_right) / 2.0
-                result += drop_black_hole.crush(distance: distance_random)
-                if let left_collider = conveyor.left_collider {
-                    result += crush_black_holes_modified(conveyor: left_collider, which: which)
-                }
-                if let right_collider = conveyor.right_collider {
-                    result += crush_black_holes_modified(conveyor: right_collider, which: which)
-                }
-            }
-        }
-        return result
-    }
-    
-    
-    func crush_black_holes_modified(which: Which) -> Double {
-        Conveyor.crush_black_holes_modified(conveyor: self, which: which)
-    }
-    
-    func print_black_holes_modified() {
-        print("\(name) black holes modified:")
-        for drop_black_hole in drop_black_holes_modified {
-            print("\t\(drop_black_hole)")
-        }
-    }
     
 }
